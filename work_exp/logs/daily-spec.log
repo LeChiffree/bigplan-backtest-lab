@@ -1,0 +1,4 @@
+[pipeline] === daily-spec başladı 2026-10-19T08:19:56.130Z ===
+[daily_spec] hücre: 593, adaylı: 590 (ilk aday başlık: 544), koşulacak durum: 2363
+[daily_spec] yazıldı: D:\BigPlan\out\daily_spec.json
+[pipeline] === daily-spec bitti: kod 0, 11s ===

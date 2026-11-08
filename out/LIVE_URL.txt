@@ -1,0 +1,14 @@
+Canlı yayın (LAN - Ana PRO Dashboard): http://192.168.1.124:8123/
+Canlı yayın (LAN - ULTRA 10x/15x):     http://192.168.1.124:8123/ultra
+Yerel:                                 http://127.0.0.1:8123/
+
+Rotalar:
+  /            → BACKTEST93.html (Filtre Laboratuvarı PRO · Adım Adım Strateji & $10 Kasa Analizi)
+  /pro         → BACKTEST93.html (Filtre Laboratuvarı PRO)
+  /backtest93  → BACKTEST93.html (Filtre Laboratuvarı PRO)
+  /ultra       → ULTRA.html (10x/15x dayanıklılık senaryosu)
+  /homojenlik  → HOMOJENLIK.html (ölçüt 4 varyantları + katman filtresi)
+  /eski        → DASHBOARD_ONLINE.html
+  /master      → DASHBOARD_MASTER_LITE.html
+
+Sunucu:  node tools/serve_dash.mjs · port 8123 · PID 19668

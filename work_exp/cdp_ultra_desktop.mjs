@@ -1,0 +1,34 @@
+import { writeFileSync } from 'node:fs';
+const PORT = 9223;
+const URL = 'http://192.168.1.124:8123/ultra';
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const list = await (await fetch('http://127.0.0.1:' + PORT + '/json')).json();
+const t = list.find((x) => x.type === 'page');
+const ws = new WebSocket(t.webSocketDebuggerUrl);
+let id = 0; const p = new Map(); const errors = [];
+ws.addEventListener('message', (e) => {
+  const m = JSON.parse(e.data);
+  if (m.method === 'Runtime.exceptionThrown') errors.push('EX: ' + (m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text));
+  if (m.method === 'Log.entryAdded' && m.params.entry.level === 'error') errors.push('LOG: ' + m.params.entry.text);
+  if (m.id && p.has(m.id)) { p.get(m.id)(m); p.delete(m.id); }
+});
+await new Promise((r) => ws.addEventListener('open', r));
+const send = (method, params) => new Promise((res) => { const i = ++id; p.set(i, res); ws.send(JSON.stringify({ id: i, method, params: params || {} })); });
+const ev = async (expr) => { const r = await send('Runtime.evaluate', { expression: expr, returnByValue: true, awaitPromise: true }); return r.result && r.result.result ? r.result.result.value : r; };
+const shot = async (file) => { const r = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false }); writeFileSync(file, Buffer.from(r.result.data, 'base64')); };
+await send('Runtime.enable'); await send('Log.enable'); await send('Page.enable');
+await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1100, deviceScaleFactor: 1, mobile: false });
+await send('Page.navigate', { url: URL });
+await sleep(2800);
+console.log('VIEW:', await ev("innerWidth + 'x' + innerHeight + ' · scroll ' + document.documentElement.scrollWidth"));
+console.log('CARDS:', await ev("JSON.stringify([...document.querySelectorAll('#topCards .top-card')].map(c=>{const r=c.getBoundingClientRect();return{x:Math.round(r.x),y:Math.round(r.y),w:Math.round(r.width),h:Math.round(r.height)}}))"));
+console.log('ALT:', await ev("[...document.querySelectorAll('#topCards .top-card .tiny.dim')].map(x=>x.innerText.replace(/\\s+/g,' ')).filter(x=>x.includes('Aile')).join(' || ')"));
+await shot('D:/BigPlan/work_exp/ultra_desktop_top.png');
+await ev("document.getElementById('topCards').scrollIntoView({block:'start'})"); await sleep(500);
+await shot('D:/BigPlan/work_exp/ultra_desktop_cards.png');
+await ev("document.getElementById('eqChart').scrollIntoView({block:'center'})"); await sleep(500);
+await shot('D:/BigPlan/work_exp/ultra_desktop_charts.png');
+await ev("document.getElementById('rankTable').scrollIntoView({block:'start'})"); await sleep(500);
+await shot('D:/BigPlan/work_exp/ultra_desktop_table.png');
+console.log('HATALAR:', errors.length ? errors.join(' || ') : 'yok');
+ws.close();

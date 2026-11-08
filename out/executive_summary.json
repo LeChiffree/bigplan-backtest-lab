@@ -1,0 +1,477 @@
+{
+ "gen": "2026-10-19T08:19:54.871Z",
+ "kpis": {
+  "hücre": 593,
+  "bazNegatifHücre": 259,
+  "bazPozitifHücre": 334,
+  "kurtarılan": 69,
+  "kurtarılanBaşlık": 67,
+  "iyileşen": 577,
+  "iyileşenBaşlık": 534,
+  "ortalamaİyileşme": 0.0512,
+  "ortalamaİyileşmeNegatiflerde": 0.0054,
+  "pozitifOranÖnce": 0.563,
+  "pozitifOranSonra": 0.686,
+  "tekFiltreDeğerlendirmesi": 38368,
+  "kombinasyonDeğerlendirmesi": 10103,
+  "kabulEdilenVaryant": 12630
+ },
+ "byTf": {
+  "5m": {
+   "hücre": 100,
+   "negatif": 95,
+   "kurtarılan": 6,
+   "iyileşen": 91,
+   "ortİyileşme": 0.001
+  },
+  "15m": {
+   "hücre": 100,
+   "negatif": 89,
+   "kurtarılan": 16,
+   "iyileşen": 98,
+   "ortİyileşme": 0.0011
+  },
+  "1h": {
+   "hücre": 100,
+   "negatif": 47,
+   "kurtarılan": 32,
+   "iyileşen": 100,
+   "ortİyileşme": 0.0055
+  },
+  "4h": {
+   "hücre": 99,
+   "negatif": 10,
+   "kurtarılan": 8,
+   "iyileşen": 99,
+   "ortİyileşme": 0.019
+  },
+  "1d": {
+   "hücre": 98,
+   "negatif": 8,
+   "kurtarılan": 4,
+   "iyileşen": 97,
+   "ortİyileşme": 0.0584
+  },
+  "1w": {
+   "hücre": 96,
+   "negatif": 10,
+   "kurtarılan": 3,
+   "iyileşen": 92,
+   "ortİyileşme": 0.2332
+  }
+ },
+ "ligİlk10": [
+  {
+   "k": "b_breadth",
+   "cat": "market",
+   "pass": 236,
+   "eval": 589,
+   "ortalamaPassTrainD": 0.0043,
+   "ortalamaPassTestD": 0.018
+  },
+  {
+   "k": "v_above",
+   "cat": "volume",
+   "pass": 173,
+   "eval": 582,
+   "ortalamaPassTrainD": 0.0063,
+   "ortalamaPassTestD": 0.0106
+  },
+  {
+   "k": "f_own30",
+   "cat": "rel",
+   "pass": 173,
+   "eval": 589,
+   "ortalamaPassTrainD": 0.0056,
+   "ortalamaPassTestD": 0.0131
+  },
+  {
+   "k": "g_weekend",
+   "cat": "cal",
+   "pass": 166,
+   "eval": 590,
+   "ortalamaPassTrainD": 0.0025,
+   "ortalamaPassTestD": 0.0043
+  },
+  {
+   "k": "b_mktvol",
+   "cat": "market",
+   "pass": 139,
+   "eval": 589,
+   "ortalamaPassTrainD": 0.0094,
+   "ortalamaPassTestD": 0.0209
+  },
+  {
+   "k": "t_psar",
+   "cat": "trend",
+   "pass": 134,
+   "eval": 588,
+   "ortalamaPassTrainD": 0.0084,
+   "ortalamaPassTestD": 0.0322
+  },
+  {
+   "k": "v_rvol15",
+   "cat": "volume",
+   "pass": 134,
+   "eval": 582,
+   "ortalamaPassTrainD": 0.0063,
+   "ortalamaPassTestD": 0.0148
+  },
+  {
+   "k": "b_btc_dvol",
+   "cat": "market",
+   "pass": 128,
+   "eval": 496,
+   "ortalamaPassTrainD": 0.0036,
+   "ortalamaPassTestD": 0.0113
+  },
+  {
+   "k": "m_roc",
+   "cat": "momentum",
+   "pass": 124,
+   "eval": 589,
+   "ortalamaPassTrainD": 0.0067,
+   "ortalamaPassTestD": 0.0196
+  },
+  {
+   "k": "m_stoch",
+   "cat": "momentum",
+   "pass": 121,
+   "eval": 590,
+   "ortalamaPassTrainD": 0.005,
+   "ortalamaPassTestD": 0.0176
+  }
+ ],
+ "öneÇıkanlar": [
+  {
+   "id": "stochrsi",
+   "tf": "1w",
+   "keys": [
+    "h_ext"
+   ],
+   "type": "filtre",
+   "thr": "başlık",
+   "baseAvg": 2.0917,
+   "afterAvg": 5.848,
+   "lift": 3.7563,
+   "trainD": 0.5158,
+   "testD": 3.9293,
+   "testN": 120,
+   "keep": 0.2062,
+   "baseN": 611,
+   "afterN": 126
+  },
+  {
+   "id": "uo",
+   "tf": "1w",
+   "keys": [
+    "t_htf"
+   ],
+   "type": "filtre",
+   "thr": "başlık",
+   "baseAvg": 1.0103,
+   "afterAvg": 3.0307,
+   "lift": 2.0204,
+   "trainD": 0.5032,
+   "testD": 2.0341,
+   "testN": 111,
+   "keep": 0.2765,
+   "baseN": 405,
+   "afterN": 112
+  },
+  {
+   "id": "pvi",
+   "tf": "1w",
+   "keys": [
+    "t_ribbon",
+    "t_htf",
+    "b_btc_dd_x"
+   ],
+   "type": "üçlü",
+   "thr": "başlık",
+   "baseAvg": 0.3283,
+   "afterAvg": 1.2999,
+   "lift": 0.9716,
+   "trainD": 0.0219,
+   "testD": 2.0261,
+   "testN": 144,
+   "keep": 0.2256,
+   "baseN": 1166,
+   "afterN": 263
+  },
+  {
+   "id": "uo",
+   "tf": "1d",
+   "keys": [
+    "b_mktvol",
+    "b_btc_volpct"
+   ],
+   "type": "ikili",
+   "thr": "başlık",
+   "baseAvg": 1.1135,
+   "afterAvg": 2.2508,
+   "lift": 1.1373,
+   "trainD": 0.3953,
+   "testD": 1.3062,
+   "testN": 324,
+   "keep": 0.3418,
+   "baseN": 1138,
+   "afterN": 389
+  },
+  {
+   "id": "guppy",
+   "tf": "1w",
+   "keys": [
+    "b_btc_dd_x",
+    "h_notext",
+    "f_own30"
+   ],
+   "type": "üçlü",
+   "thr": "başlık",
+   "baseAvg": 1.1804,
+   "afterAvg": 1.7294,
+   "lift": 0.549,
+   "trainD": 0.009,
+   "testD": 0.9635,
+   "testN": 305,
+   "keep": 0.6047,
+   "baseN": 774,
+   "afterN": 468
+  },
+  {
+   "id": "adx",
+   "tf": "1w",
+   "keys": [
+    "t_psar",
+    "v_mfi",
+    "b_btc_dd_x"
+   ],
+   "type": "üçlü",
+   "thr": "başlık",
+   "baseAvg": 0.9107,
+   "afterAvg": 1.4643,
+   "lift": 0.5536,
+   "trainD": 0.0297,
+   "testD": 0.8773,
+   "testN": 264,
+   "keep": 0.5549,
+   "baseN": 728,
+   "afterN": 404
+  },
+  {
+   "id": "stochrsi",
+   "tf": "1d",
+   "keys": [
+    "t_psar",
+    "t_chopRange"
+   ],
+   "type": "ikili",
+   "thr": "başlık",
+   "baseAvg": 1.3941,
+   "afterAvg": 2.2186,
+   "lift": 0.8245,
+   "trainD": 0.1449,
+   "testD": 0.8754,
+   "testN": 977,
+   "keep": 0.5857,
+   "baseN": 2001,
+   "afterN": 1172
+  },
+  {
+   "id": "ulcer",
+   "tf": "1w",
+   "keys": [
+    "t_htf",
+    "i_nosane",
+    "t_psar"
+   ],
+   "type": "üçlü",
+   "thr": "başlık",
+   "baseAvg": 0.9388,
+   "afterAvg": 1.4559,
+   "lift": 0.5171,
+   "trainD": 0.0038,
+   "testD": 0.8137,
+   "testN": 136,
+   "keep": 0.241,
+   "baseN": 921,
+   "afterN": 222
+  },
+  {
+   "id": "ema",
+   "tf": "1w",
+   "keys": [
+    "t_ribbon"
+   ],
+   "type": "filtre",
+   "thr": "başlık",
+   "baseAvg": 0.816,
+   "afterAvg": 1.7245,
+   "lift": 0.9085,
+   "trainD": 0.0653,
+   "testD": 0.7686,
+   "testN": 149,
+   "keep": 0.2094,
+   "baseN": 869,
+   "afterN": 182
+  },
+  {
+   "id": "ao",
+   "tf": "1w",
+   "keys": [
+    "t_linreg",
+    "t_psar"
+   ],
+   "type": "ikili",
+   "thr": "başlık",
+   "baseAvg": 0.6419,
+   "afterAvg": 1.4606,
+   "lift": 0.8187,
+   "trainD": 0.0444,
+   "testD": 0.7445,
+   "testN": 223,
+   "keep": 0.2209,
+   "baseN": 1168,
+   "afterN": 258
+  }
+ ],
+ "kurtarılamayanİlk10": [
+  {
+   "id": "vroc",
+   "tf": "5m",
+   "n": 41311176,
+   "baseAvg": -0.001,
+   "bestAvg": -0.0009,
+   "bestKeys": [
+    "m_rsi50_x"
+   ],
+   "bestThr": "başlık"
+  },
+  {
+   "id": "rvi",
+   "tf": "5m",
+   "n": 36005553,
+   "baseAvg": -0.001,
+   "bestAvg": -0.0006,
+   "bestKeys": [
+    "t_chopTrend"
+   ],
+   "bestThr": "—"
+  },
+  {
+   "id": "dpo",
+   "tf": "5m",
+   "n": 27352587,
+   "baseAvg": -0.0009,
+   "bestAvg": -0.0008,
+   "bestKeys": [
+    "h_ext"
+   ],
+   "bestThr": "—"
+  },
+  {
+   "id": "fvg",
+   "tf": "5m",
+   "n": 22395780,
+   "baseAvg": -0.001,
+   "bestAvg": -0.001,
+   "bestKeys": [
+    "t_ema200"
+   ],
+   "bestThr": "—"
+  },
+  {
+   "id": "relvol",
+   "tf": "5m",
+   "n": 18871557,
+   "baseAvg": -0.001,
+   "bestAvg": 0.0004,
+   "bestKeys": [
+    "t_chopTrend"
+   ],
+   "bestThr": "—"
+  },
+  {
+   "id": "roc",
+   "tf": "5m",
+   "n": 17367689,
+   "baseAvg": -0.001,
+   "bestAvg": -0.0005,
+   "bestKeys": [
+    "t_chopTrend"
+   ],
+   "bestThr": "—"
+  },
+  {
+   "id": "mom",
+   "tf": "5m",
+   "n": 16554972,
+   "baseAvg": -0.001,
+   "bestAvg": -0.0004,
+   "bestKeys": [
+    "t_chopTrend"
+   ],
+   "bestThr": "—"
+  },
+  {
+   "id": "eom",
+   "tf": "5m",
+   "n": 16427357,
+   "baseAvg": -0.001,
+   "bestAvg": -0.0003,
+   "bestKeys": [
+    "t_chopTrend"
+   ],
+   "bestThr": "—"
+  },
+  {
+   "id": "vwma",
+   "tf": "5m",
+   "n": 15651325,
+   "baseAvg": -0.001,
+   "bestAvg": 0.0003,
+   "bestKeys": [
+    "h_ext"
+   ],
+   "bestThr": "—"
+  },
+  {
+   "id": "mcginley",
+   "tf": "5m",
+   "n": 15637289,
+   "baseAvg": -0.001,
+   "bestAvg": 0.0046,
+   "bestKeys": [
+    "h_ext"
+   ],
+   "bestThr": "—"
+  }
+ ],
+ "doğrulama": {
+  "cells": 600,
+  "ok": 600,
+  "fail": 0,
+  "worst": {
+   "d": 0,
+   "path": ""
+  },
+  "rounding": 0
+ },
+ "yöntem": {
+  "motor": "sim.mjs birebir kopyası (doğrulandı: 600 hücre referans karşılaştırması)",
+  "filtreSayısı": 66,
+  "strateji": 100,
+  "tf": [
+   "5m",
+   "15m",
+   "1h",
+   "4h",
+   "1d",
+   "1w"
+  ],
+  "train": "2022-08-01 → 2024-12-31",
+  "test": "2025-01-01 → veri sonu",
+  "marketVerisi": "Gerçek Fear&Greed (alternative.me) + BTC trend/getiri/vol + piyasa genişliği + toplam hacim",
+  "lookahead": "Yok — tüm piyasa verileri kapanış anında bilinen değerlerle hizalanır"
+ }
+}

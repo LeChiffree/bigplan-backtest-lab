@@ -1,0 +1,5 @@
+[pipeline] === report başladı 2026-10-19T08:19:09.251Z ===
+[rapor] baseline: 100, singles: 100, combos: 99
+[rapor] yazıldı: executive_summary.json, filtre_ozet.csv, dashboard_data.json, FILTRE-RAPORU.md, README.md
+[rapor] KPI: hücre 593, baz negatif 259, kurtarılan 69 (başlık 67), iyileşen 577, ort. iyileşme +5.1200%
+[pipeline] === report bitti: kod 0, 46s ===

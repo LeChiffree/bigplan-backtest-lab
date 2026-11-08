@@ -1,0 +1,12 @@
+{
+ "gen": "2026-10-18T21:04:24.700Z",
+ "phase": "all",
+ "test": null,
+ "downloaded": 711,
+ "skipped": 55616,
+ "missing404": 5,
+ "errs": 0,
+ "gb": 0.03,
+ "minutes": 7.9,
+ "errorsSample": []
+}

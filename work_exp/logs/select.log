@@ -1,0 +1,20 @@
+[pipeline] === select başladı 2026-10-19T08:07:55.668Z ===
+[select] 100 indikatör, 200 singles dosyası
+[select] hücre: 590, aday geçen hücre: 402, yazılan hücre: 402, kombinasyon: 10104
+[select] ilk 15 filtre (pass hücre sayısı):
+    236  b_breadth        BTC / Piyasa  trainΔ+0.0043 testΔ+0.018
+    173  v_above          Hacim / Likidite  trainΔ+0.0063 testΔ+0.0106
+    173  f_own30          Göreli Güç  trainΔ+0.0056 testΔ+0.0131
+    166  g_weekend        Takvim / Saat  trainΔ+0.0025 testΔ+0.0043
+    139  b_mktvol         BTC / Piyasa  trainΔ+0.0094 testΔ+0.0209
+    134  t_psar           Trend / Rejim  trainΔ+0.0084 testΔ+0.0322
+    134  v_rvol15         Hacim / Likidite  trainΔ+0.0063 testΔ+0.0148
+    128  b_btc_dvol       BTC / Piyasa  trainΔ+0.0036 testΔ+0.0113
+    124  m_roc            Momentum  trainΔ+0.0067 testΔ+0.0196
+    121  m_stoch          Momentum  trainΔ+0.005 testΔ+0.0176
+    121  v_dollarvol      Hacim / Likidite  trainΔ+0.0032 testΔ+0.01
+    115  b_btc_dd_x       BTC / Piyasa  trainΔ+0.0019 testΔ+0.0215
+    114  b_btc_dd         BTC / Piyasa  trainΔ+0.0003 testΔ+0.0036
+    111  m_mom            Momentum  trainΔ+0.0076 testΔ+0.0217
+    101  v_cmf            Hacim / Likidite  trainΔ+0.0041 testΔ+0.0164
+[pipeline] === select bitti: kod 0, 9s ===

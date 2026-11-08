@@ -1,0 +1,23 @@
+{
+  "name": "bigplan-filtre-lab",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "İndikatör Akademi backtest sonuçları üzerine filtre laboratuvarı — ia-bt-v2-filtre",
+  "scripts": {
+    "fng": "node data/fetch_fng.mjs",
+    "cache": "node tools/cache.mjs",
+    "market": "node tools/market.mjs",
+    "verify": "node tools/run2.mjs verify",
+    "singles": "node tools/run2.mjs singles",
+    "combos": "node tools/run2.mjs combos",
+    "report": "node tools/report2.mjs",
+    "dashboard": "node tools/dashboard.mjs",
+    "daily-spec": "node tools/daily_spec.mjs",
+    "daily": "node tools/rundaily.mjs",
+    "homogen": "node tools/homogen.mjs",
+    "homogen-html": "node tools/homogen_html.mjs",
+    "baseline": "node tools/run2.mjs baseline",
+    "fetch-extra": "node tools/fetch_extra.mjs"
+  }
+}

@@ -1,0 +1,6 @@
+[pipeline] === homogen başladı 2026-10-19T08:37:44.423Z ===
+[homogen] durum: 2363 | net pozitif: 1655 | HOMOJEN: 0 (temel: 0, filtreli: 0)
+[homogen] pozitiflerde medyan: top5gün payı 246% | poz ay 50% | R² 0.66
+[homogen] ilk 12 homojen:
+[homogen] yazıldı: out/homojenlik.csv, out/homojenlik.json, out/HOMOJENLIK-RAPORU.md
+[pipeline] === homogen bitti: kod 0, 2s ===

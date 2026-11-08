@@ -1,0 +1,8 @@
+[pipeline] === qa-expand başladı 2026-10-19T08:07:29.049Z ===
+[qa] evren: 520 sembol (cmd=singles)
+[qa] singles dosyası: 200
+[qa] örneklenen hücre: 86, heat kontrol: 86
+[qa] yeni sembol (TRXUSDT,ETCUSDT,XTZUSDT,ATOMUSDT) heat gözlemi: 343
+[qa] baseline karşılaştırması: 86 hücre
+[qa] SONUÇ: TUTARLI ✔
+[pipeline] === qa-expand bitti: kod 0, 27s ===

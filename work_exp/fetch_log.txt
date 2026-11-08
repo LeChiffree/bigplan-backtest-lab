@@ -1,0 +1,20 @@
+[fetch] özet: indirilen 15, atlanan 0, 404 0, hata 0, 0.00 GB, 0.1 dk
+[fetch] funding 25/462
+[fetch] funding 50/462
+[fetch] funding 75/462
+[fetch] funding 100/462
+[fetch] funding 125/462
+[fetch] funding 150/462
+[fetch] funding 175/462
+[fetch] funding 200/462
+[fetch] funding 225/462
+[fetch] funding 250/462
+[fetch] funding 275/462
+[fetch] funding 300/462
+[fetch] funding 325/462
+[fetch] funding 350/462
+[fetch] funding 375/462
+[fetch] funding 400/462
+[fetch] funding 425/462
+[fetch] funding 450/462
+[fetch] özet: indirilen 711, atlanan 55616, 404 5, hata 0, 0.03 GB, 7.9 dk

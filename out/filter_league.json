@@ -1,0 +1,530 @@
+[
+ {
+  "k": "b_breadth",
+  "cat": "market",
+  "pass": 236,
+  "eval": 589,
+  "ortalamaPassTrainD": 0.0043,
+  "ortalamaPassTestD": 0.018
+ },
+ {
+  "k": "v_above",
+  "cat": "volume",
+  "pass": 173,
+  "eval": 582,
+  "ortalamaPassTrainD": 0.0063,
+  "ortalamaPassTestD": 0.0106
+ },
+ {
+  "k": "f_own30",
+  "cat": "rel",
+  "pass": 173,
+  "eval": 589,
+  "ortalamaPassTrainD": 0.0056,
+  "ortalamaPassTestD": 0.0131
+ },
+ {
+  "k": "g_weekend",
+  "cat": "cal",
+  "pass": 166,
+  "eval": 590,
+  "ortalamaPassTrainD": 0.0025,
+  "ortalamaPassTestD": 0.0043
+ },
+ {
+  "k": "b_mktvol",
+  "cat": "market",
+  "pass": 139,
+  "eval": 589,
+  "ortalamaPassTrainD": 0.0094,
+  "ortalamaPassTestD": 0.0209
+ },
+ {
+  "k": "t_psar",
+  "cat": "trend",
+  "pass": 134,
+  "eval": 588,
+  "ortalamaPassTrainD": 0.0084,
+  "ortalamaPassTestD": 0.0322
+ },
+ {
+  "k": "v_rvol15",
+  "cat": "volume",
+  "pass": 134,
+  "eval": 582,
+  "ortalamaPassTrainD": 0.0063,
+  "ortalamaPassTestD": 0.0148
+ },
+ {
+  "k": "b_btc_dvol",
+  "cat": "market",
+  "pass": 128,
+  "eval": 496,
+  "ortalamaPassTrainD": 0.0036,
+  "ortalamaPassTestD": 0.0113
+ },
+ {
+  "k": "m_roc",
+  "cat": "momentum",
+  "pass": 124,
+  "eval": 589,
+  "ortalamaPassTrainD": 0.0067,
+  "ortalamaPassTestD": 0.0196
+ },
+ {
+  "k": "m_stoch",
+  "cat": "momentum",
+  "pass": 121,
+  "eval": 590,
+  "ortalamaPassTrainD": 0.005,
+  "ortalamaPassTestD": 0.0176
+ },
+ {
+  "k": "v_dollarvol",
+  "cat": "volume",
+  "pass": 121,
+  "eval": 496,
+  "ortalamaPassTrainD": 0.0032,
+  "ortalamaPassTestD": 0.01
+ },
+ {
+  "k": "b_btc_dd_x",
+  "cat": "market",
+  "pass": 115,
+  "eval": 590,
+  "ortalamaPassTrainD": 0.0019,
+  "ortalamaPassTestD": 0.0215
+ },
+ {
+  "k": "b_btc_dd",
+  "cat": "market",
+  "pass": 114,
+  "eval": 590,
+  "ortalamaPassTrainD": 0.0003,
+  "ortalamaPassTestD": 0.0036
+ },
+ {
+  "k": "m_mom",
+  "cat": "momentum",
+  "pass": 111,
+  "eval": 588,
+  "ortalamaPassTrainD": 0.0076,
+  "ortalamaPassTestD": 0.0217
+ },
+ {
+  "k": "v_cmf",
+  "cat": "volume",
+  "pass": 101,
+  "eval": 589,
+  "ortalamaPassTrainD": 0.0041,
+  "ortalamaPassTestD": 0.0164
+ },
+ {
+  "k": "v_volosc",
+  "cat": "volume",
+  "pass": 97,
+  "eval": 588,
+  "ortalamaPassTrainD": 0.006,
+  "ortalamaPassTestD": 0.0162
+ },
+ {
+  "k": "v_mfi",
+  "cat": "volume",
+  "pass": 92,
+  "eval": 590,
+  "ortalamaPassTrainD": 0.0024,
+  "ortalamaPassTestD": 0.0109
+ },
+ {
+  "k": "t_st",
+  "cat": "trend",
+  "pass": 91,
+  "eval": 589,
+  "ortalamaPassTrainD": 0.0073,
+  "ortalamaPassTestD": 0.0203
+ },
+ {
+  "k": "m_rsi50",
+  "cat": "momentum",
+  "pass": 89,
+  "eval": 588,
+  "ortalamaPassTrainD": 0.0057,
+  "ortalamaPassTestD": 0.0246
+ },
+ {
+  "k": "t_ema200",
+  "cat": "trend",
+  "pass": 87,
+  "eval": 496,
+  "ortalamaPassTrainD": 0.003,
+  "ortalamaPassTestD": 0.0068
+ },
+ {
+  "k": "h_candle",
+  "cat": "ctx",
+  "pass": 85,
+  "eval": 590,
+  "ortalamaPassTrainD": 0.0072,
+  "ortalamaPassTestD": 0.0273
+ },
+ {
+  "k": "m_rsi_zone",
+  "cat": "momentum",
+  "pass": 85,
+  "eval": 589,
+  "ortalamaPassTrainD": 0.0031,
+  "ortalamaPassTestD": 0.0082
+ },
+ {
+  "k": "b_btc_4h",
+  "cat": "market",
+  "pass": 82,
+  "eval": 590,
+  "ortalamaPassTrainD": 0.0108,
+  "ortalamaPassTestD": 0.02
+ },
+ {
+  "k": "b_btc_volpct",
+  "cat": "market",
+  "pass": 81,
+  "eval": 496,
+  "ortalamaPassTrainD": 0.0091,
+  "ortalamaPassTestD": 0.0162
+ },
+ {
+  "k": "v_force",
+  "cat": "volume",
+  "pass": 79,
+  "eval": 589,
+  "ortalamaPassTrainD": 0.0042,
+  "ortalamaPassTestD": 0.0155
+ },
+ {
+  "k": "b_btc_ret7d",
+  "cat": "market",
+  "pass": 78,
+  "eval": 590,
+  "ortalamaPassTrainD": 0.0194,
+  "ortalamaPassTestD": 0.0276
+ },
+ {
+  "k": "m_cmo",
+  "cat": "momentum",
+  "pass": 78,
+  "eval": 588,
+  "ortalamaPassTrainD": 0.0074,
+  "ortalamaPassTestD": 0.0203
+ },
+ {
+  "k": "v_obv",
+  "cat": "volume",
+  "pass": 77,
+  "eval": 589,
+  "ortalamaPassTrainD": 0.006,
+  "ortalamaPassTestD": 0.0155
+ },
+ {
+  "k": "f_ema50slope",
+  "cat": "rel",
+  "pass": 72,
+  "eval": 587,
+  "ortalamaPassTrainD": 0.0076,
+  "ortalamaPassTestD": 0.0278
+ },
+ {
+  "k": "m_macd",
+  "cat": "momentum",
+  "pass": 69,
+  "eval": 589,
+  "ortalamaPassTrainD": 0.0088,
+  "ortalamaPassTestD": 0.0198
+ },
+ {
+  "k": "t_ribbon",
+  "cat": "trend",
+  "pass": 67,
+  "eval": 586,
+  "ortalamaPassTrainD": 0.0066,
+  "ortalamaPassTestD": 0.0356
+ },
+ {
+  "k": "m_macd_x",
+  "cat": "contra",
+  "pass": 67,
+  "eval": 579,
+  "ortalamaPassTrainD": 0.0043,
+  "ortalamaPassTestD": 0.0184
+ },
+ {
+  "k": "t_linreg",
+  "cat": "trend",
+  "pass": 67,
+  "eval": 588,
+  "ortalamaPassTrainD": 0.0027,
+  "ortalamaPassTestD": 0.0192
+ },
+ {
+  "k": "e_atr_high",
+  "cat": "fear",
+  "pass": 66,
+  "eval": 496,
+  "ortalamaPassTrainD": 0.0043,
+  "ortalamaPassTestD": 0.0067
+ },
+ {
+  "k": "e_atr_min",
+  "cat": "fear",
+  "pass": 66,
+  "eval": 496,
+  "ortalamaPassTrainD": 0.0011,
+  "ortalamaPassTestD": 0.0035
+ },
+ {
+  "k": "t_htf",
+  "cat": "trend",
+  "pass": 63,
+  "eval": 589,
+  "ortalamaPassTrainD": 0.0031,
+  "ortalamaPassTestD": 0.0301
+ },
+ {
+  "k": "t_chopRange",
+  "cat": "trend",
+  "pass": 62,
+  "eval": 585,
+  "ortalamaPassTrainD": 0.0132,
+  "ortalamaPassTestD": 0.0376
+ },
+ {
+  "k": "h_notext",
+  "cat": "ctx",
+  "pass": 59,
+  "eval": 590,
+  "ortalamaPassTrainD": 0.0045,
+  "ortalamaPassTestD": 0.0165
+ },
+ {
+  "k": "m_tsi",
+  "cat": "momentum",
+  "pass": 56,
+  "eval": 588,
+  "ortalamaPassTrainD": 0.0077,
+  "ortalamaPassTestD": 0.0334
+ },
+ {
+  "k": "h_ext",
+  "cat": "ctx",
+  "pass": 52,
+  "eval": 588,
+  "ortalamaPassTrainD": 0.0037,
+  "ortalamaPassTestD": 0.0085
+ },
+ {
+  "k": "t_ema50200",
+  "cat": "trend",
+  "pass": 52,
+  "eval": 496,
+  "ortalamaPassTrainD": 0.0027,
+  "ortalamaPassTestD": 0.0029
+ },
+ {
+  "k": "i_nosane",
+  "cat": "data",
+  "pass": 52,
+  "eval": 590,
+  "ortalamaPassTrainD": 0.0023,
+  "ortalamaPassTestD": 0.0242
+ },
+ {
+  "k": "g_ussession",
+  "cat": "cal",
+  "pass": 50,
+  "eval": 399,
+  "ortalamaPassTrainD": 0.0018,
+  "ortalamaPassTestD": 0.0052
+ },
+ {
+  "k": "v_shock_cap",
+  "cat": "volume",
+  "pass": 49,
+  "eval": 590,
+  "ortalamaPassTrainD": 0.0023,
+  "ortalamaPassTestD": 0.0115
+ },
+ {
+  "k": "m_vote3",
+  "cat": "momentum",
+  "pass": 48,
+  "eval": 589,
+  "ortalamaPassTrainD": 0.0102,
+  "ortalamaPassTestD": 0.0277
+ },
+ {
+  "k": "b_breadth_mom",
+  "cat": "market",
+  "pass": 47,
+  "eval": 589,
+  "ortalamaPassTrainD": 0.0164,
+  "ortalamaPassTestD": 0.0368
+ },
+ {
+  "k": "m_ao",
+  "cat": "momentum",
+  "pass": 42,
+  "eval": 587,
+  "ortalamaPassTrainD": 0.0072,
+  "ortalamaPassTestD": 0.0257
+ },
+ {
+  "k": "m_roc_x",
+  "cat": "contra",
+  "pass": 41,
+  "eval": 541,
+  "ortalamaPassTrainD": 0.0061,
+  "ortalamaPassTestD": 0.0257
+ },
+ {
+  "k": "g_deadhours",
+  "cat": "cal",
+  "pass": 37,
+  "eval": 399,
+  "ortalamaPassTrainD": 0.0007,
+  "ortalamaPassTestD": 0.0021
+ },
+ {
+  "k": "t_adx20",
+  "cat": "trend",
+  "pass": 36,
+  "eval": 588,
+  "ortalamaPassTrainD": 0.0079,
+  "ortalamaPassTestD": 0.0303
+ },
+ {
+  "k": "m_rsi50_x",
+  "cat": "contra",
+  "pass": 33,
+  "eval": 561,
+  "ortalamaPassTrainD": 0.0021,
+  "ortalamaPassTestD": 0.0053
+ },
+ {
+  "k": "t_htf_x",
+  "cat": "contra",
+  "pass": 27,
+  "eval": 588,
+  "ortalamaPassTrainD": 0.0184,
+  "ortalamaPassTestD": 0.0202
+ },
+ {
+  "k": "t_aroon",
+  "cat": "trend",
+  "pass": 27,
+  "eval": 588,
+  "ortalamaPassTrainD": 0.0122,
+  "ortalamaPassTestD": 0.0506
+ },
+ {
+  "k": "f_relbtc",
+  "cat": "rel",
+  "pass": 26,
+  "eval": 587,
+  "ortalamaPassTrainD": 0.0129,
+  "ortalamaPassTestD": 0.062
+ },
+ {
+  "k": "h_funding",
+  "cat": "ctx",
+  "pass": 25,
+  "eval": 589,
+  "ortalamaPassTrainD": 0.0051,
+  "ortalamaPassTestD": 0.0205
+ },
+ {
+  "k": "t_adx25",
+  "cat": "trend",
+  "pass": 24,
+  "eval": 588,
+  "ortalamaPassTrainD": 0.0072,
+  "ortalamaPassTestD": 0.0411
+ },
+ {
+  "k": "b_btc_d1",
+  "cat": "market",
+  "pass": 23,
+  "eval": 589,
+  "ortalamaPassTrainD": 0.0065,
+  "ortalamaPassTestD": 0.0113
+ },
+ {
+  "k": "e_fng_mod",
+  "cat": "fear",
+  "pass": 22,
+  "eval": 590,
+  "ortalamaPassTrainD": 0.0021,
+  "ortalamaPassTestD": 0.0176
+ },
+ {
+  "k": "g_friday_late",
+  "cat": "cal",
+  "pass": 21,
+  "eval": 590,
+  "ortalamaPassTrainD": 0.001,
+  "ortalamaPassTestD": 0.0007
+ },
+ {
+  "k": "t_ema200_x",
+  "cat": "contra",
+  "pass": 15,
+  "eval": 496,
+  "ortalamaPassTrainD": 0.0078,
+  "ortalamaPassTestD": 0.02
+ },
+ {
+  "k": "i_age90",
+  "cat": "data",
+  "pass": 9,
+  "eval": 590,
+  "ortalamaPassTrainD": 0.0063,
+  "ortalamaPassTestD": 0.0019
+ },
+ {
+  "k": "e_fng_greed",
+  "cat": "fear",
+  "pass": 7,
+  "eval": 590,
+  "ortalamaPassTrainD": 0.0004,
+  "ortalamaPassTestD": 0.004
+ },
+ {
+  "k": "t_break30",
+  "cat": "trend",
+  "pass": 6,
+  "eval": 513,
+  "ortalamaPassTrainD": 0.0077,
+  "ortalamaPassTestD": 0.0802
+ },
+ {
+  "k": "t_chopTrend",
+  "cat": "trend",
+  "pass": 3,
+  "eval": 548,
+  "ortalamaPassTrainD": 0.0018,
+  "ortalamaPassTestD": 0.0017
+ },
+ {
+  "k": "t_cloud",
+  "cat": "trend",
+  "pass": 0,
+  "eval": 588,
+  "ortalamaPassTrainD": 0,
+  "ortalamaPassTestD": 0
+ },
+ {
+  "k": "e_fng_fear",
+  "cat": "fear",
+  "pass": 0,
+  "eval": 590,
+  "ortalamaPassTrainD": 0,
+  "ortalamaPassTestD": 0
+ }
+]

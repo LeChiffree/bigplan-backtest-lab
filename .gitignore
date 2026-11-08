@@ -1,0 +1,20 @@
+# Lokal mum (kline / series) ve piyasa binary önbellekleri (lokalden okunur)
+cache/
+*.bin
+*.zip
+
+# Geçici tarayıcı profilleri ve büyük ara ham dökümler
+work_exp/edge-*/
+work_exp/*.log
+work_exp/*.err
+out/*.log
+out/test_pro.json
+out/pro_data.json
+out/backtest93_vol.json
+out/backtest93_raw.json
+out/backtest93_data_v1.json
+out/singles/
+out/combos/
+out_eski58/singles/
+out_eski58/combos/
+node_modules/

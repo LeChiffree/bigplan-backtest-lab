@@ -1,0 +1,12 @@
+[pipeline] === bin-audit başladı 2026-10-19T05:58:51.099Z ===
+5m: 520 bin | normal 520 | az bar 1 | bozuk 0
+15m: 520 bin | normal 520 | az bar 1 | bozuk 0
+1h: 519 bin | normal 519 | az bar 0 | bozuk 0
+4h: 519 bin | normal 519 | az bar 0 | bozuk 0
+1d: 517 bin | normal 517 | az bar 0 | bozuk 0
+1w: 369 bin | normal 369 | az bar 0 | bozuk 0
+--- ayrıntı (ilk 40):
+  5m 牛来USDT: az bar (n=438)
+  15m 牛来USDT: az bar (n=146)
+toplam sorun: 2
+[pipeline] === bin-audit bitti: kod 0, 38s ===

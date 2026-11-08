@@ -1,0 +1,18 @@
+const PORT = 9223;
+const URL = 'http://192.168.1.124:8123/ultra';
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const list = await (await fetch('http://127.0.0.1:' + PORT + '/json')).json();
+const t = list.find((x) => x.type === 'page');
+const ws = new WebSocket(t.webSocketDebuggerUrl);
+let id = 0; const p = new Map();
+ws.addEventListener('message', (e) => { const m = JSON.parse(e.data); if (m.id && p.has(m.id)) { p.get(m.id)(m); p.delete(m.id); } });
+await new Promise((r) => ws.addEventListener('open', r));
+const send = (method, params) => new Promise((res) => { const i = ++id; p.set(i, res); ws.send(JSON.stringify({ id: i, method, params: params || {} })); });
+const ev = async (expr) => { const r = await send('Runtime.evaluate', { expression: expr, returnByValue: true }); return r.result && r.result.result ? r.result.result.value : r; };
+await send('Runtime.enable'); await send('Page.enable');
+await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
+await send('Page.navigate', { url: URL }); await sleep(2400);
+console.log('MOBILE:', await ev("JSON.stringify({sw:document.documentElement.scrollWidth,iw:innerWidth,seg:document.querySelector('#bucketSeg').getBoundingClientRect().width,left:document.querySelector('.toolbar .left').getBoundingClientRect().width,toolbar:document.querySelector('.toolbar').getBoundingClientRect().width})"));
+console.log('OVERFLOW ELS:', await ev("[...document.querySelectorAll('body *')].filter(e=>e.getBoundingClientRect().right>innerWidth+1).slice(0,8).map(e=>e.tagName+'.'+e.className+' '+Math.round(e.getBoundingClientRect().right)).join(' || ')"));
+await send('Emulation.clearDeviceMetricsOverride');
+ws.close();
