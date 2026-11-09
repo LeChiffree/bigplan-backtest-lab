@@ -58,7 +58,7 @@ export function simulateMulti(spec, ctx, gateL, gateS, trackers) {
 
   let errCount = 0, firstErr = null;
 
-  const closeTrade = (k, exitI, exitP) => {
+  const closeTrade = (k, exitI, exitP, reason = 2) => {
     const t1 = S.t[exitI];
     let r;
     if (pos[k] === 1) r = (exitP * (1 - SIDE)) / (entryP[k] * (1 + SIDE)) - 1;
@@ -66,7 +66,7 @@ export function simulateMulti(spec, ctx, gateL, gateS, trackers) {
     const fc = fundingCost(ctx.fund, entryT[k], t1);
     r -= pos[k] === 1 ? fc : -fc;
     if (r < -0.999) r = -0.999;
-    if (trackers) trackers[k].onTrade(r, exitI - entryI[k], t1, pos[k]);
+    if (trackers) trackers[k].onTrade(r, exitI - entryI[k], t1, pos[k], reason);
     pos[k] = 0; stopP[k] = NaN; barsHeld[k] = 0;
   };
 
@@ -92,7 +92,7 @@ export function simulateMulti(spec, ctx, gateL, gateS, trackers) {
 
     // 1) bekleyen emirler bu barın açılışında
     for (let k = 0; k < K; k++) {
-      if (pos[k] !== 0 && pendingExit[k]) { closeTrade(k, i, o); pendingExit[k] = 0; }
+      if (pos[k] !== 0 && pendingExit[k]) { closeTrade(k, i, o, pendingExit[k]); pendingExit[k] = 0; }
       if (pos[k] === 0 && pendingEntry[k] !== 0 && i < n - 1) { openPos(k, pendingEntry[k], i); pendingEntry[k] = 0; }
     }
 
@@ -100,8 +100,8 @@ export function simulateMulti(spec, ctx, gateL, gateS, trackers) {
     for (let k = 0; k < K; k++) {
       if (pos[k] !== 0 && barsHeld[k] >= 1 && !Number.isNaN(stopP[k])) {
         const sp = stopP[k];
-        if (pos[k] === 1 && l <= sp) closeTrade(k, i, o < sp ? o : sp);
-        else if (pos[k] === -1 && h >= sp) closeTrade(k, i, o > sp ? o : sp);
+        if (pos[k] === 1 && l <= sp) closeTrade(k, i, o < sp ? o : sp, 0);
+        else if (pos[k] === -1 && h >= sp) closeTrade(k, i, o > sp ? o : sp, 0);
       }
     }
     // trailing güncellemesi + bar sayacı
@@ -145,10 +145,11 @@ export function simulateMulti(spec, ctx, gateL, gateS, trackers) {
         let wantExit = pos[k] === 1 ? e1 : e2;
         let flip = 0;
         if (!wantExit && allowShort && d === -pos[k]) flip = d;
-        if (spec.maxBars && barsHeld[k] >= spec.maxBars) wantExit = true;
-        if (wantExit) pendingExit[k] = 1;
+        let maxB = false;
+        if (spec.maxBars && barsHeld[k] >= spec.maxBars) { wantExit = true; maxB = true; }
+        if (wantExit) pendingExit[k] = maxB ? 3 : 1;
         if (flip !== 0) {
-          pendingExit[k] = 1;
+          pendingExit[k] = 2;
           if (flip === 1 ? gateL[k][i] : gateS[k][i]) pendingEntry[k] = flip;
         }
       }
@@ -157,7 +158,7 @@ export function simulateMulti(spec, ctx, gateL, gateS, trackers) {
 
   // dönem sonu açık pozisyonlar
   const lastC = S.c[n - 1];
-  for (let k = 0; k < K; k++) if (pos[k] !== 0) closeTrade(k, n - 1, lastC);
+  for (let k = 0; k < K; k++) if (pos[k] !== 0) closeTrade(k, n - 1, lastC, 3);
 
   return { start, errCount, firstErr, K };
 }

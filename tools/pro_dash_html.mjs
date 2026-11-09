@@ -1,4 +1,4 @@
-// pro_dash_html.mjs — Profesyonel Backtest & Filtre Laboratuvarı HTML üreticisi
+// pro_dash_html.mjs — İkiye Bölünmüş (Sol: Tüm Yıllar | Sağ: Sadece 2026) PRO Dashboard üreticisi
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -7,15 +7,40 @@ const css = await readFile(join(BP, 'work_exp', 'pro_dash.css'), 'utf8');
 const app = await readFile(join(BP, 'work_exp', 'pro_dash_app.js'), 'utf8');
 const bundle = await readFile(join(BP, 'out', 'pro_bundle.json'), 'utf8');
 
-// window.__PRO_DATA__ betiğini üret (tarayıcıda hızlı parse ve önbellekleme için)
 await writeFile(join(BP, 'out', 'pro_data.js'), 'window.__PRO_DATA__=' + bundle + ';\n');
+
+function splitRow(num, titleAll, title26, descAll, desc26, idAll, id26, boxClass = '') {
+  return `
+    <div class="split-row">
+      <div class="chart-card left-card">
+        <div class="chart-head">
+          <div>
+            <h3>${num ? num + '. ' : ''}${titleAll}</h3>
+            <p>${descAll}</p>
+          </div>
+          <span class="tag-side all">TÜM YILLAR (22–26)</span>
+        </div>
+        <div id="${idAll}" class="plot-box ${boxClass}"></div>
+      </div>
+      <div class="chart-card right-card">
+        <div class="chart-head">
+          <div>
+            <h3>${num ? num + '. ' : ''}${title26}</h3>
+            <p>${desc26}</p>
+          </div>
+          <span class="tag-side y26">SADECE 2026</span>
+        </div>
+        <div id="${id26}" class="plot-box ${boxClass}"></div>
+      </div>
+    </div>`;
+}
 
 const html = `<!doctype html>
 <html lang="tr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Filtre Laboratuvarı PRO · Adım Adım Strateji & Kasa Analizi</title>
+<title>Filtre Laboratuvarı PRO · Sol: Tüm Yıllar | Sağ: 2026 Karşılaştırmalı Analiz</title>
 <style>
 ${css}
 </style>
@@ -23,66 +48,60 @@ ${css}
 <body>
 <div class="app">
 
-  <!-- SOL PANEL: ADIM ADIM SEÇİM SİHİRBAZI -->
+  <!-- SOL KONTROL PANELİ (1. Metot Seçici & 2. Zaman Dilimi Seçici) -->
   <aside class="side">
     <div class="brand">
       <div class="brand-left">
         <div class="logo">FL</div>
         <div>
           <h1>Filtre Lab PRO</h1>
-          <p>Adım Adım Strateji &amp; $10 Kasa Analizi</p>
+          <p>Sol: Tüm Yıllar · Sağ: 2026</p>
         </div>
       </div>
       <div class="nav-links">
-        <a class="nav-pill" href="/ultra">ULTRA 10x/15x</a>
+        <a class="nav-pill" href="/ultra">ULTRA</a>
         <a class="nav-pill" href="/homojenlik">Homojenlik</a>
       </div>
     </div>
 
-    <div class="rule-banner">
-      <b>✓ Pozitiflik Kuralı Aktif:</b> Hem toplam (2022–2026) hem de <b>2026 işlem başı ortalama getirisi negatif (≤ 0)</b> olan strateji/varyantlar elenmiştir.
+    <div class="spec-badges">
+      <div><b>✓ 24. 5dk Çıkış Çözümlemesi:</b> Üst TF işlemleri alt mumlarla sıraya konur.</div>
+      <div><b>✓ 25. Aynı Mumda SL/TP:</b> İkisi aynı mumda görülürse korumacı şekilde SL önce uygulanır.</div>
+      <div><b>✓ 26. Kaldıraçsız (1×):</b> Bütün sonuçlar azami 1× kaldıraçla hesaplanır.</div>
     </div>
 
-    <!-- ADIM 1: EVREN & TIMEFRAME FİLTRESİ -->
+    <!-- ADIM 1: ZAMAN DİLİMİ SEÇİCİ (2) & EVREN -->
     <div class="step-box">
       <div class="step-head">
-        <div class="step-title"><span class="step-num">1</span> Zaman Dilimi &amp; Evren</div>
+        <div class="step-title"><span class="step-num">1</span> 2. Zaman Dilimi &amp; Evren</div>
       </div>
-      <div class="sub-label">Timeframe (Zaman Dilimi) Filtresi</div>
+      <div class="sub-label">Zaman Dilimi Seçici (1h, 4h, 1d, 1w, 15m)</div>
       <div class="chips" id="tfChips"></div>
 
-      <div class="sub-label">Hacim Evreni (5 Yıl Ort. USDT Hacmi)</div>
+      <div class="sub-label">Hacim Evreni (5 Yıl Ort. USDT)</div>
       <div class="chips" id="volChips"></div>
 
-      <div style="display:grid;grid-template-columns:1.25fr 0.75fr;gap:8px;margin-top:6px">
-        <div>
-          <div class="sub-label">Kaldıraç Çarpanı</div>
-          <div class="chips" id="levChips"></div>
-        </div>
-        <div>
-          <div class="sub-label">Birim Gösterimi</div>
-          <div class="chips" id="unitChips"></div>
-        </div>
-      </div>
+      <div class="sub-label">Hesaplama Birimi (Azami 1× Kaldıraçsız)</div>
+      <div class="chips" id="unitChips"></div>
     </div>
 
-    <!-- ADIM 2: ÖNCE STRATEJİ SEÇ (TEK TEK İLERLE) -->
+    <!-- ADIM 2: METOT SEÇİCİ (1) -->
     <div class="step-box">
       <div class="step-head">
-        <div class="step-title"><span class="step-num">2</span> Önce Strateji Seçin</div>
+        <div class="step-title"><span class="step-num">2</span> 1. Metot Seçici</div>
         <span class="stepper-pos" id="stepPos">1 / 42</span>
       </div>
       <div class="stepper-bar">
-        <button class="btn-step" id="prevStrat">◀ Önceki Strateji</button>
-        <span style="font-size:11px;color:var(--dim)">Tek Tek İncele</span>
-        <button class="btn-step" id="nextStrat">Sonraki Strateji ▶</button>
+        <button class="btn-step" id="prevStrat">◀ Önceki</button>
+        <span style="font-size:10.5px;color:var(--dim)">Tek Tek İlerlet</span>
+        <button class="btn-step" id="nextStrat">Sonraki ▶</button>
       </div>
       <div class="search-row">
-        <input class="input" type="search" id="qInput" placeholder="Strateji veya filtre ara...">
+        <input class="input" type="search" id="qInput" placeholder="Metot veya filtre ara...">
         <select class="select" id="sortSel">
-          <option value="kasaAll">$10 Kasa (22–26) ↓</option>
-          <option value="kasa2526">$10 Kasa (25–26) ↓</option>
-          <option value="exp26">2026 $/İşlem ↓</option>
+          <option value="kasaAll">Tüm Yıllar Net ↓</option>
+          <option value="kasa26">2026 Net ↓</option>
+          <option value="exp26">2026 Ort. R ↓</option>
           <option value="pf">Profit Factor ↓</option>
           <option value="wr">Kazanma Oranı ↓</option>
         </select>
@@ -90,55 +109,37 @@ ${css}
       <div class="strat-list" id="stratList"></div>
     </div>
 
-    <!-- ADIM 3: SEÇİLİ STRATEJİNİN TIMEFRAME & FİLTRESİ -->
+    <!-- ADIM 3: METODUN TIMEFRAME & SENARYO SEÇİCİSİ -->
     <div class="step-box">
       <div class="step-head">
-        <div class="step-title"><span class="step-num">3</span> Strateji Timeframe &amp; Filtresi</div>
+        <div class="step-title"><span class="step-num">3</span> Metodun Timeframe &amp; Filtresi</div>
       </div>
-      <div class="sub-label">Bu Stratejinin Uygun Timeframe'leri</div>
-      <div class="chips" id="stratTfChips" style="margin-bottom:10px"></div>
+      <div class="sub-label">Metodun Zaman Dilimleri</div>
+      <div class="chips" id="stratTfChips" style="margin-bottom:8px"></div>
 
-      <div class="sub-label">Uygulanacak Filtre Varyantı</div>
+      <div class="sub-label">Senaryo / Filtre Varyantı</div>
       <div class="var-list" id="varList"></div>
     </div>
   </aside>
 
-  <!-- SAĞ ANA EKRAN -->
+  <!-- SAĞ ANA EKRAN: SOLDA TÜM YILLAR | SAĞDA SADECE 2026 -->
   <main class="main">
 
-    <!-- BÖLÜM NAVİGASYONU -->
-    <nav class="sec-nav">
-      <div class="sec-links">
-        <a class="sec-link" href="#sec-filter">1. Filtre Etkisi &amp; Switch</a>
-        <a class="sec-link" href="#sec-cash">2. $10 Kasa Line (22–26 &amp; 25–26)</a>
-        <a class="sec-link" href="#sec-daily">3. Gün Gün Kâr/Zarar</a>
-        <a class="sec-link" href="#sec-period">4. Yıl · Çeyrek · Mevsim</a>
-        <a class="sec-link" href="#sec-dur">5. Kalma Süresi (1-3g..65g)</a>
-        <a class="sec-link" href="#sec-extra">6. Heatmap &amp; İleri Analiz</a>
-      </div>
-      <span style="font-size:12px;color:var(--dim)">Python Plotly 6.8 + NumPy/SciPy Motoru</span>
-    </nav>
-
-    <!-- ÜST STRATEJİ ÖZETİ + SAĞDAKİ SWITCH BOX -->
+    <!-- ÜST STRATEJİ ÖZETİ + SAĞ SWITCH BOX -->
     <div class="hero-grid">
       <div class="strat-hero">
         <div>
-          <div class="strat-hero-top">
-            <div>
-              <h2 id="selTitle">—</h2>
-              <div class="sub" id="selSub">—</div>
-            </div>
-          </div>
+          <h2 id="selTitle">—</h2>
+          <div class="sub" id="selSub">—</div>
           <div class="badges" id="selBadges"></div>
         </div>
         <div class="rules-bar" id="selRules"></div>
       </div>
 
-      <!-- SAĞDAKİ UYGULANACAK FİLTRE SWITCH BOX -->
       <div class="switch-box-card">
         <div class="switch-box-head">
           <h3>🎛️ Uygulanacak Filtre Switch Box</h3>
-          <span style="font-size:11.5px;color:var(--tx-sec)">Aç/Kapat ile Anlık Simülasyon</span>
+          <span style="font-size:11px;color:var(--tx-sec)">Aç/Kapat ile Anlık Karşılaştırma</span>
         </div>
         <div class="switch-list" id="switchList"></div>
         <div class="preset-row" id="presetRow"></div>
@@ -146,258 +147,217 @@ ${css}
       </div>
     </div>
 
-    <!-- KPI KARTLARI -->
-    <div class="kpis" id="kpis"></div>
+    <!-- İKİYE BÖLÜNMÜŞ YAPIŞKAN SÜTUN BAŞLIKLARI (3. Tüm Yıllar Paneli | 4. 2026 Paneli) -->
+    <div class="split-sticky-headers">
+      <div class="col-banner left-all">
+        <span>📊 3. TÜM YILLAR PANELİ (2022–2026 Bütün Dönem)</span>
+        <span class="sub">Sol Sütun · 1× Kaldıraçsız</span>
+      </div>
+      <div class="col-banner right-2026">
+        <span>🎯 4. 2026 PANELİ (Yalnızca 2026 Sonuçları)</span>
+        <span class="sub">Sağ Sütun · 1× Kaldıraçsız</span>
+      </div>
+    </div>
 
-    <!-- BÖLÜM 1: FİLTRELERİN ETKİSİ (2 GRAFİK) -->
-    <section class="section-block" id="sec-filter">
-      <div class="section-header">
-        <div>
-          <h2>1. Seçili Stratejiye Uygulanacak Filtrelerin Etkisi</h2>
-          <p>Filtresiz (Temel) strateji ile tekil filtrelerin ve birleşik varyantların $10 kasa eğrisi ve brüt kâr/zarar üzerindeki doğrudan etkisi.</p>
-        </div>
-      </div>
-      <div class="chart-grid-2">
-        <div class="chart-card">
-          <div class="chart-card-head">
-            <div>
-              <h3>Filtre Etkisi 1 · $10 Kasa Eğrisi Karşılaştırması</h3>
-              <p>Filtresiz (Temel, kırmızı noktalı) vs Tekil Filtreler vs Varyantlar (0$'dan başlayarak)</p>
-            </div>
-          </div>
-          <div id="cFilterCurve" class="plot-box"></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-card-head">
-            <div>
-              <h3>Filtre Etkisi 2 · Brüt Kâr (Yeşil) / Zarar (Kırmızı) &amp; Net Kasa</h3>
-              <p>Her bir filtrenin brüt kârı nasıl koruyup brüt zararı nasıl kestiğini gösterir</p>
-            </div>
-          </div>
-          <div id="cFilterBars" class="plot-box"></div>
-        </div>
-      </div>
-    </section>
+    <!-- ÖĞELER 5..12: 8'Lİ KPI KARTLARI (SOL: TÜM YILLAR | SAĞ: 2026) -->
+    <div class="split-row">
+      <div class="kpi-grid-8" id="kpisAll"></div>
+      <div class="kpi-grid-8" id="kpis2026"></div>
+    </div>
 
-    <!-- BÖLÜM 2: İKİ FARKLI $10 KASA LINE GRAFİĞİ (TÜM DÖNEM & SADECE 2025-2026) -->
-    <section class="section-block" id="sec-cash">
-      <div class="section-header">
-        <div>
-          <h2>2. $10 Sabit İşlem Kasası Line Grafikleri (0$'dan Başlayan Kasa Durumu)</h2>
-          <p>Her işleme sabit 10 $ ile girildiği varsayılıp kasayı 0 dolardan başlatarak kasanın zaman içindeki gerçek birikimli durumunu gösterir.</p>
-        </div>
-      </div>
-      <div class="chart-grid-2">
-        <div class="chart-card">
-          <div class="chart-card-head">
-            <div>
-              <h3>Line 1 · Tüm Dönem $10 İşlem Kasası (2022–2026)</h3>
-              <p>İlk günden (2022-08-01 = 0$) son güne (2026-09-08) kasanın durumu ve zirve çizgisi</p>
-            </div>
-          </div>
-          <div id="cCashAll" class="plot-box"></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-card-head">
-            <div>
-              <h3>Line 2 · Sadece 2025–2026 Özel $10 İşlem Kasası</h3>
-              <p>01.01.2025 tarihinde kasayı 0$'dan başlatıp sadece 2025 ve 2026 yıllarındaki kasa gelişimi</p>
-            </div>
-          </div>
-          <div id="cCash2526" class="plot-box"></div>
-        </div>
-      </div>
-    </section>
+    <!-- YENİ GRAFİK 1: KÜMÜLATİF NET ÖZSERMAYE EĞRİSİ -->
+    ${splitRow(
+      '',
+      'Kümülatif Net Özsermaye Eğrisi (Tüm Yıllar)',
+      'Kümülatif Net Özsermaye Eğrisi (2026)',
+      '2022-08-01 başlangıçlı 1× kaldıraçsız net özsermaye ve zirve çizgisi',
+      '01.01.2026 başlangıçlı 1× kaldıraçsız 2026 net özsermaye ve zirve çizgisi',
+      'cEq_all',
+      'cEq_26'
+    )}
 
-    <!-- BÖLÜM 3: GÜN GÜN KÂR VE ZARAR HİSTOGRAMLARI (TÜM DÖNEM & 2025-2026) -->
-    <section class="section-block" id="sec-daily">
-      <div class="section-header">
-        <div>
-          <h2>3. Gün Gün Kâr (Yeşil Yukarı) ve Zarar (Kırmızı Aşağı) Histogramları</h2>
-          <p>Her gün için o gün kapanan işlemlerin toplam kârı yukarı yeşil bar, toplam zararı aşağı kırmızı bar olarak aynı anda gösterilir.</p>
-        </div>
-      </div>
-      <div class="chart-grid-2">
-        <div class="chart-card">
-          <div class="chart-card-head">
-            <div>
-              <h3>Gün Gün Kâr / Zarar Histogramı · Tüm Dönem (2022–2026)</h3>
-              <p>1.500 gün boyunca her günün eşzamanlı brüt kârı (+yeşil) ve brüt zararı (-kırmızı)</p>
-            </div>
-          </div>
-          <div id="cDailyAll" class="plot-box"></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-card-head">
-            <div>
-              <h3>Gün Gün Kâr / Zarar Histogramı · Sadece 2025–2026</h3>
-              <p>2025 ve 2026 yıllarına yakınlaştırılmış günlük yeşil kâr ve kırmızı zarar barları</p>
-            </div>
-          </div>
-          <div id="cDaily2526" class="plot-box"></div>
-        </div>
-      </div>
-    </section>
+    <!-- YENİ GRAFİK 2: DRAWDOWN EĞRİSİ -->
+    ${splitRow(
+      '',
+      'Drawdown (Zirveden Düşüş) Eğrisi (Tüm Yıllar)',
+      'Drawdown (Zirveden Düşüş) Eğrisi (2026)',
+      'Bütün dönemde özsermayenin önceki zirvesinden geri çekilmesi',
+      'Yalnızca 2026 içinde özsermayenin 2026 zirvesinden geri çekilmesi',
+      'cDd_all',
+      'cDd_26'
+    )}
 
-    <!-- BÖLÜM 4: YIL YIL, ÇEYREK ÇEYREK VE MEVSİM MEVSİM KÂR / ZARAR HİSTOGRAMLARI -->
-    <section class="section-block" id="sec-period">
-      <div class="section-header">
-        <div>
-          <h2>4. Yıl Yıl, Çeyrek Çeyrek ve Mevsim Mevsim Kâr / Zarar Histogramları</h2>
-          <p>Her dönemde (2026 dahil) brüt kâr yukarı yeşil bar, brüt zarar aşağı kırmızı bar ve net kâr sarı elmas çizgi olarak aynı anda gösterilir.</p>
-        </div>
-      </div>
-      <div class="chart-grid-2">
-        <div class="chart-card">
-          <div class="chart-card-head">
-            <div>
-              <h3>Yıl Yıl Kâr ve Zarar Histogramı (2022 – 2026)</h3>
-              <p>2022, 2023, 2024, 2025 ve 2026 yıllarının yeşil kâr / kırmızı zarar ve net kâr barları</p>
-            </div>
-          </div>
-          <div id="cYearly" class="plot-box"></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-card-head">
-            <div>
-              <h3>Mevsim Mevsim Kâr ve Zarar Histogramı</h3>
-              <p>Kış, İlkbahar, Yaz ve Sonbahar dönemlerinde yukarı yeşil kâr ve aşağı kırmızı zarar</p>
-            </div>
-          </div>
-          <div id="cSeasonal" class="plot-box"></div>
-        </div>
-      </div>
-      <div class="chart-grid-1">
-        <div class="chart-card">
-          <div class="chart-card-head">
-            <div>
-              <h3>Çeyrek Çeyrek (Quarter) Kâr ve Zarar Histogramı</h3>
-              <p>Her çeyrekte yukarı yeşil kâr, aşağı kırmızı zarar ve sarı elmas net kâr</p>
-            </div>
-            <div class="chips" id="qtrToggle">
-              <button class="chip on" data-qtr="timeline">Takvim Çeyrekleri (2022 Q3 → 2026 Q3)</button>
-              <button class="chip" data-qtr="agg">Toplam Çeyrekler (Q1 · Q2 · Q3 · Q4)</button>
-            </div>
-          </div>
-          <div id="cQuarterly" class="plot-box"></div>
-        </div>
-      </div>
-    </section>
+    <!-- YENİ GRAFİK 9: FİLTRELİ–FİLTRESİZ NET GETİRİ KARŞILAŞTIRMASI -->
+    ${splitRow(
+      '',
+      'Filtreli–Filtresiz Net Getiri Karşılaştırması (Tüm Yıllar)',
+      'Filtreli–Filtresiz Net Getiri Karşılaştırması (2026)',
+      'Filtresiz (Temel, kırmızı noktalı) ile seçili filtre varyantlarının tüm dönem karşılaştırması',
+      'Filtresiz (Temel) ile seçili filtre varyantlarının yalnızca 2026 karşılaştırması',
+      'cFltCmp_all',
+      'cFltCmp_26'
+    )}
 
-    <!-- BÖLÜM 5: BİR İŞLEMDE TOPLAM KALMA SÜRELERİ (1-3G, 3-7G, 7-14G, 14-35G, 35-65G, 65+G) -->
-    <section class="section-block" id="sec-dur">
-      <div class="section-header">
-        <div>
-          <h2>5. Bir İşlemde Toplam Kalma Süreleri &amp; Getiri Dağılımı</h2>
-          <p>&lt;1 gün, 1–3 gün, 3–7 gün, 7–14 gün, 14–35 gün, 35–65 gün ve 65+ gün dilimlerinde kâr/zarar ve işlem adetleri.</p>
-        </div>
-      </div>
-      <div class="chart-grid-2">
-        <div class="chart-card">
-          <div class="chart-card-head">
-            <div>
-              <h3>İşlemde Toplam Kalma Süreleri (1–3g · 3–7g · 7–14g · 14–35g · 35–65g)</h3>
-              <p>Kalma süresi dilimlerine göre yeşil kâr / kırmızı zarar veya işlem sayısı &amp; kazanma oranı</p>
-            </div>
-            <div class="chips" id="durToggle">
-              <button class="chip on" data-dur="pnl">Yeşil Kâr / Kırmızı Zarar</button>
-              <button class="chip" data-dur="count">İşlem Sayısı &amp; Kazanma Oranı %</button>
-            </div>
-          </div>
-          <div id="cDuration" class="plot-box"></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-card-head">
-            <div>
-              <h3>İşlem Başına Getiri Dağılımı &amp; Kuyruk Asimetrisi</h3>
-              <p>Getiri dilimlerine (&lt;-20% .. &gt;+20%) göre işlem sayısı ve net kasa katkısı</p>
-            </div>
-          </div>
-          <div id="cRetDist" class="plot-box"></div>
-        </div>
-      </div>
-    </section>
+    <!-- YENİ GRAFİK 8: HAREKETLİ 30, 90 VE 365 GÜNLÜK NET GETİRİ -->
+    ${splitRow(
+      '',
+      'Hareketli 30, 90 ve 365 Günlük Net Getiri (Tüm Yıllar)',
+      'Hareketli 30, 90 ve 365 Günlük Net Getiri (2026)',
+      '30G (mavi), 90G (yeşil) ve 365G (altın) hareketli net getiri pencereleri',
+      '2026 boyunca 30G, 90G ve 365G hareketli net getiri pencereleri',
+      'cRoll_all',
+      'cRoll_26'
+    )}
 
-    <!-- BÖLÜM 6: YENİ HİSTOGRAM, HEATMAP VE LINE GRAFİK FİKİRLERİMİZ (UYGULAMALI) -->
-    <section class="section-block" id="sec-extra">
-      <div class="section-header">
-        <div>
-          <h2>6. İleri Kantitatif Analiz: Heatmap, Sualtı Düşüş &amp; Coin Diverging Grafikleri</h2>
-          <p>Stratejinin istikrarını, risk derinliğini ve zaman/coin yoğunlaşmasını ölçmek için eklediğimiz 4 yeni profesyonel grafik.</p>
-        </div>
-      </div>
+    <!-- ÖĞE 13: GÜNLÜK KÂR-ZARAR GRAFİĞİ -->
+    ${splitRow(
+      '13',
+      'Günlük Kâr-Zarar Grafiği (Tüm Yıllar)',
+      'Günlük Kâr-Zarar Grafiği (2026)',
+      'Aynı günün brüt kâr (yukarı yeşil) ve brüt zarar (aşağı kırmızı) barları birlikte',
+      '2026 günlerinde aynı günün brüt kâr (yukarı yeşil) ve brüt zarar (aşağı kırmızı) barları birlikte',
+      'cDay_all',
+      'cDay_26'
+    )}
 
-      <div class="ideas-grid">
-        <div class="idea-card">
-          <h4>💡 Fikir 1: Yıl × Ay Kâr/Zarar Isı Haritası (Heatmap)</h4>
-          <p>2022–2026 yıllarının 12 ayını tek bir matriste gösterir. Stratejinin kârının tek bir aya mı sıkıştığını yoksa her aya düzenli mi yayıldığını bir bakışta ortaya çıkarır.</p>
-        </div>
-        <div class="idea-card">
-          <h4>💡 Fikir 2: $10 Kasa Sualtı Düşüş (Underwater Drawdown) &amp; 90G Tempo</h4>
-          <p>Kasanın gördüğü en yüksek zirveden dolar bazında ne kadar geri çekildiğini (-$) ve son 90 günlük aylık kazanç temposunun 2025–2026'da güçlenip güçlenmediğini gösterir.</p>
-        </div>
-        <div class="idea-card">
-          <h4>💡 Fikir 3: Haftanın Günleri &amp; Giriş Saatleri Kâr/Zarar Barları</h4>
-          <p>Hangi günlerde (Pzt–Paz) ve hangi 3 saatlik dilimlerde açılan işlemlerin yeşil kâr veya kırmızı zarar ürettiğini aynı barda karşılaştırır.</p>
-        </div>
-        <div class="idea-card">
-          <h4>💡 Fikir 4: Coin Bazlı Diverging Kâr/Zarar Aynası</h4>
-          <p>En çok katkı veren ve en çok zarar yazan coinlerde sağa doğru yeşil brüt kâr, sola doğru kırmızı brüt zararı ve sarı elmas net katkıyı aynı satırda gösterir.</p>
-        </div>
-      </div>
+    <!-- ÖĞE 14: HAFTALIK KÂR-ZARAR GRAFİĞİ -->
+    ${splitRow(
+      '14',
+      'Haftalık Kâr-Zarar Grafiği (Tüm Yıllar)',
+      'Haftalık Kâr-Zarar Grafiği (2026)',
+      'Her haftanın brüt kârı (yeşil), brüt zararı (kırmızı) ve haftalık net sonucu',
+      '2026 haftalarının brüt kârı (yeşil), brüt zararı (kırmızı) ve haftalık net sonucu',
+      'cWeek_all',
+      'cWeek_26'
+    )}
 
-      <div class="chart-grid-2">
-        <div class="chart-card">
-          <div class="chart-card-head">
-            <div>
-              <h3>Yıl × Ay Net Kasa Isı Haritası (Monthly Heatmap)</h3>
-              <p>Her hücrede o ayın net katkısı; yeşil aylar kârlı, kırmızı aylar zararlı dönemleri gösterir</p>
-            </div>
-          </div>
-          <div id="cHeatmapMonth" class="plot-box"></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-card-head">
-            <div>
-              <h3>$10 Kasa Sualtı Düşüş (Drawdown) &amp; 90 Günlük Tempo Line Grafiği</h3>
-              <p>Kırmızı alan: kasa zirvesinden dolar çekilme · Mavi çizgi: 90 günlük hareketli aylık tempo</p>
-            </div>
-          </div>
-          <div id="cUnderwater" class="plot-box"></div>
-        </div>
-      </div>
+    <!-- ÖĞE 15: AYLIK KÂR-ZARAR GRAFİĞİ -->
+    ${splitRow(
+      '15',
+      'Aylık Kâr-Zarar Grafiği (Tüm Yıllar)',
+      'Aylık Kâr-Zarar Grafiği (2026)',
+      '2022–2026 arası tüm aylarda brüt kâr (yeşil), brüt zarar (kırmızı) ve net sonuç',
+      '2026 aylarında (Ocak–Eylül) brüt kâr (yeşil), brüt zarar (kırmızı) ve net sonuç',
+      'cMonth_all',
+      'cMonth_26'
+    )}
 
-      <div class="chart-grid-2">
-        <div class="chart-card">
-          <div class="chart-card-head">
-            <div>
-              <h3>Haftanın Günleri &amp; Giriş Saatleri Kâr / Zarar Histogramı</h3>
-              <p>Gün veya 3 saatlik giriş dilimine göre yukarı yeşil kâr ve aşağı kırmızı zarar</p>
-            </div>
-            <div class="chips" id="dowToggle">
-              <button class="chip on" data-dow="dow">Haftanın Günleri (Pzt–Paz)</button>
-              <button class="chip" data-dow="hour">Giriş Saatleri (00–24 UTC)</button>
-            </div>
-          </div>
-          <div id="cDowHour" class="plot-box"></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-card-head">
-            <div>
-              <h3>Coin Bazlı Kâr (Sağa Yeşil) / Zarar (Sola Kırmızı) Grafiği</h3>
-              <p>En yüksek ve en düşük katkılı coinlerde brüt kâr, brüt zarar ve net kasa etkisi</p>
-            </div>
-          </div>
-          <div id="cCoin" class="plot-box"></div>
-        </div>
-      </div>
-    </section>
+    <!-- ÖĞE 16: MEVSİMLİK KÂR-ZARAR GRAFİĞİ -->
+    ${splitRow(
+      '16',
+      'Mevsimlik Kâr-Zarar Grafiği (Tüm Yıllar)',
+      'Mevsimlik Kâr-Zarar Grafiği (2026)',
+      'Kış, İlkbahar, Yaz ve Sonbahar kırılımında brüt kâr ve zarar (Tüm Yıllar)',
+      'Kış, İlkbahar, Yaz ve Sonbahar kırılımında brüt kâr ve zarar (2026)',
+      'cSeason_all',
+      'cSeason_26'
+    )}
+
+    <!-- YENİ GRAFİK 6: HAFTANIN GÜNÜNE GÖRE NET PERFORMANS -->
+    ${splitRow(
+      '',
+      'Haftanın Gününe Göre Net Performans (Tüm Yıllar)',
+      'Haftanın Gününe Göre Net Performans (2026)',
+      'Pazartesi–Pazar günlerinde brüt kâr, brüt zarar ve net sonuç (Tüm Yıllar)',
+      'Pazartesi–Pazar günlerinde brüt kâr, brüt zarar ve net sonuç (2026)',
+      'cDow_all',
+      'cDow_26'
+    )}
+
+    <!-- YENİ GRAFİK 7: AY × YIL NET GETİRİ HEATMAP'İ -->
+    ${splitRow(
+      '',
+      'Ay × Yıl Net Getiri Heatmap’i (2022–2026)',
+      '2026 Aylık Kâr / Zarar / Net Heatmap’i',
+      'Ocak–Aralık × 2022–2026 matrisinde aylık net sonuç ısı haritası',
+      '2026 aylarında Brüt Kâr, Brüt Zarar ve Net Sonuç ısı haritası',
+      'cCal_all',
+      'cCal_26'
+    )}
+
+    <!-- ÖĞE 17: İŞLEM SÜRESİ HİSTOGRAMI (8 ARALIK) -->
+    ${splitRow(
+      '17',
+      'İşlem Süresi Histogramı (Tüm Yıllar)',
+      'İşlem Süresi Histogramı (2026)',
+      '8 süre aralığına göre işlem sayısı ve kazanma oranı (<1sa, 1–3sa, 3–9sa, 9–24sa, 1–3g, 3–7g, 1–4h, >4h)',
+      '2026 işlemlerinin 8 süre aralığına göre işlem sayısı ve kazanma oranı',
+      'cDurCnt_all',
+      'cDurCnt_26'
+    )}
+
+    <!-- ÖĞE 18: İŞLEM SÜRESİNE GÖRE KÂR-ZARAR GRAFİĞİ -->
+    ${splitRow(
+      '18',
+      'İşlem Süresine Göre Kâr-Zarar Grafiği (Tüm Yıllar)',
+      'İşlem Süresine Göre Kâr-Zarar Grafiği (2026)',
+      'Her süre aralığındaki brüt kâr (yeşil), brüt zarar (kırmızı) ve net sonuç (Tüm Yıllar)',
+      'Her süre aralığındaki brüt kâr (yeşil), brüt zarar (kırmızı) ve net sonuç (2026)',
+      'cDurPnl_all',
+      'cDurPnl_26'
+    )}
+
+    <!-- YENİ GRAFİK 3: LONG–SHORT NET PERFORMANS KARŞILAŞTIRMASI -->
+    ${splitRow(
+      '',
+      'Long–Short Net Performans Karşılaştırması (Tüm Yıllar)',
+      'Long–Short Net Performans Karşılaştırması (2026)',
+      'Long ve Short yönlü işlemlerin brüt kâr, brüt zarar ve net katkısı (Tüm Yıllar)',
+      'Long ve Short yönlü işlemlerin brüt kâr, brüt zarar ve net katkısı (2026)',
+      'cLs_all',
+      'cLs_26'
+    )}
+
+    <!-- YENİ GRAFİK 4: ÇIKIŞ NEDENİ DAĞILIMI -->
+    ${splitRow(
+      '',
+      'Çıkış Nedeni Dağılımı — İşlem Sayısı (Tüm Yıllar)',
+      'Çıkış Nedeni Dağılımı — İşlem Sayısı (2026)',
+      'Stop-Loss (5m korumacı SL), İndikatör Çıkışı / TP, Ters Sinyal (Flip) ve Süre Sınırı dağılımı',
+      '2026 işlemlerinin çıkış nedenlerine göre işlem sayısı ve kazanma oranı dağılımı',
+      'cExitCnt_all',
+      'cExitCnt_26'
+    )}
+
+    <!-- YENİ GRAFİK 5: ÇIKIŞ NEDENİNE GÖRE NET KÂR VE ZARAR -->
+    ${splitRow(
+      '',
+      'Çıkış Nedenine Göre Net Kâr ve Zarar (Tüm Yıllar)',
+      'Çıkış Nedenine Göre Net Kâr ve Zarar (2026)',
+      'Her çıkış nedeninde oluşan brüt kâr (yeşil), brüt zarar (kırmızı) ve net sonuç (Tüm Yıllar)',
+      'Her çıkış nedeninde oluşan brüt kâr (yeşil), brüt zarar (kırmızı) ve net sonuç (2026)',
+      'cExitPnl_all',
+      'cExitPnl_26'
+    )}
+
+    <!-- ÖĞE 19: COİN BAZINDA KÂR-ZARAR GRAFİĞİ (EN AKTİF 40 COİN) -->
+    ${splitRow(
+      '19',
+      'Coin Bazında Kâr-Zarar Grafiği — En Aktif 40 Coin (Tüm Yıllar)',
+      'Coin Bazında Kâr-Zarar Grafiği — En Aktif 40 Coin (2026)',
+      'Seçilen metotta tüm dönemde en aktif 40 coinin brüt kâr (yeşil), brüt zarar (kırmızı) ve net sonucu',
+      'Seçilen metotta 2026 yılında en aktif 40 coinin brüt kâr (yeşil), brüt zarar (kırmızı) ve net sonucu',
+      'cCoin_all',
+      'cCoin_26',
+      'tall'
+    )}
+
+    <!-- ÖĞE 20..23 & FİLTRELERİN NET TOPLAM GETİRİ HEATMAP'İ -->
+    ${splitRow(
+      '20–23',
+      'Filtrelerin Net Toplam Getiri Heatmap’i · WR% · Ort R · İşlem (Tüm Yıllar)',
+      'Filtrelerin Net Toplam Getiri Heatmap’i · WR% · Ort R · İşlem (2026)',
+      'Seçilen metotta 56+ filtrenin Toplam Net Getirisi (20), Kazanma Oranı (21), Ortalama R Değeri (22) ve İşlem Sayısı (23)',
+      'Seçilen metotta 56+ filtrenin yalnızca 2026 yılı Toplam Net Getirisi, Kazanma Oranı, Ortalama R Değeri ve İşlem Sayısı',
+      'cFltHeat_all',
+      'cFltHeat_26',
+      'xtall'
+    )}
 
     <footer>
-      <b>Metodoloji ve Dürüstlük Notları:</b><br>
-      1. <b>$10 Sabit İşlem Kasası:</b> Bileşik faiz patlaması yanılsamasını önlemek için her işleme sabit <b>10 $</b> (seçili kaldıraç L× ile ölçekli) girildiği varsayılır. Kasa 0 $'dan başlar; kapanan her kazanan işlem <code>+$10·r·L</code> ekler, her kaybeden işlem <code>-$10·|r|·L</code> düşer. Komisyon, kayma ve funding maliyetleri her işlemin net <code>r</code> getirisine dahildir.<br>
-      2. <b>Pozitiflik Kuralı:</b> Hem tüm dönem (2022–2026) işlem başı ortalama getirisi hem de 2026 işlem başı ortalama getirisi pozitif olmayan adaylar elenmiştir.<br>
-      3. <b>Uyarı:</b> Evren bugün işlem gören 520 Binance USDT-M sembolünden oluşur (hayatta kalma yanlılığı). Bu ekran eğitim ve kantitatif araştırma amaçlıdır; <b>yatırım tavsiyesi değildir</b>.
+      <b>Mimari ve Simülasyon Kuralları (1–26 + 10 Yeni Grafik):</b>
+      Ekran tam ortadan ikiye bölünmüştür: <b>Sol sütun (3. Tüm Yıllar Paneli)</b> seçilen metodun 2022–2026 bütün dönem sonuçlarını, <b>Sağ sütun (4. 2026 Paneli)</b> ise yalnızca 2026 sonuçlarını birebir aynı metrik ve grafik hizasıyla gösterir.
+      Yüksek zaman dilimindeki çıkışlar bar içi alt mumlarla çözülür (<b>24</b>); aynı mumda SL ve TP görülürse korumacı şekilde SL önce uygulanır (<b>25</b>); bütün sonuçlar azami <b>1× kaldıraçsız</b> hesaplanır (<b>26</b>). Eğitim ve araştırma amaçlıdır, yatırım tavsiyesi değildir.
     </footer>
 
   </main>

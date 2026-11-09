@@ -102,7 +102,7 @@ console.log(`[extract_pro] hücre: ${cells.size}, durum: ${states.length} (ana: 
 
 const GD = 1500;
 const NY = 5;
-const NDUR = 7;
+const NDUR = 8;
 const NRET = 12;
 
 function newYear(withCoin) {
@@ -115,6 +115,7 @@ function newYear(withCoin) {
     season: new Float64Array(4 * 7),
     hour: new Float64Array(8 * 7),
     dur: new Float64Array(NDUR * 7),
+    exit: new Float64Array(4 * 7),
     ret: new Float64Array(NRET * 3),
     ls: new Float64Array(2 * 5),
   };
@@ -155,6 +156,7 @@ function mergeTier(dst, src) {
     addArr(a.season, b.season);
     addArr(a.hour, b.hour);
     addArr(a.dur, b.dur);
+    if (b.exit) addArr(a.exit, b.exit);
     addArr(a.ret, b.ret);
     addArr(a.ls, b.ls);
     if (a.coin && b.coin) addMap(a.coin, b.coin);
@@ -222,10 +224,10 @@ function roundArr(arr, dec = 3) {
 
 function buildCumulativeSets(tiers) {
   const cum = [];
-  let acc = newTierAgg(false);
+  let acc = newTierAgg(true);
   for (let t = 0; t < NTIER; t++) {
     mergeTier(acc, tiers[t]);
-    const snap = newTierAgg(false);
+    const snap = newTierAgg(t === NTIER - 1);
     mergeTier(snap, acc);
     cum.push(snap);
   }
@@ -242,18 +244,18 @@ function formatYear(Y) {
     season: roundArr(Y.season, 3),
     hour: roundArr(Y.hour, 3),
     dur: roundArr(Y.dur, 3),
+    exit: roundArr(Y.exit, 3),
     ret: roundArr(Y.ret, 3),
     ls: roundArr(Y.ls, 3),
   };
 }
 
-// En çok kâr/zarar yazan ilk 35 + son 35 sembolü koru (boyut optimizasyonu + hacim sırası uyumlu)
+// En aktif 40 sembolü (işlem sayısına göre) + en uç 10 sembolü koru
 function trimCoins(coinsMap) {
   if (!coinsMap) return [];
   const arr = [...coinsMap.entries()].map(([ci, a]) => [ci, a[0], a[1], r3(a[2]), r3(a[3]), r2(a[4]), r3(a[5]), r3(a[6])]);
-  arr.sort((a, b) => b[3] - a[3]);
-  if (arr.length <= 70) return arr;
-  return arr.slice(0, 35).concat(arr.slice(-35));
+  arr.sort((a, b) => (b[1] - a[1]) || (b[3] - a[3]));
+  return arr.slice(0, 45);
 }
 
 const dailyCache = new Map();
@@ -321,6 +323,7 @@ for (const st of states) {
     dayNegC,
     years: allT.years.map(formatYear),
     coins: trimCoins(M.coins),
+    coins26: trimCoins(allT.years[4].coin),
     samples: (M.samples || []).slice(0, 140).map(([h, r, ci, y]) => [r2(h), r2(r), ci, y]),
   };
 

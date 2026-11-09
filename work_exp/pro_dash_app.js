@@ -6,21 +6,29 @@
   var IDX_2025 = D.idx2025 || 884;
   var IDX_2026 = D.idx2026 || 1249;
   var SYMS = D.symbols || [];
-  var KEYTITLE = D.keyTitle || {};
   var VOL = D.vol || { sets: [50, 100, 150, 200, 250, 300], rank: [] };
   var STATES = D.states || [];
+  var FLT_CAT = D.filterCatalog || [];
+  var CELL_FLT = D.cellFilterStats || {};
 
   var DATE_STRS = new Array(GRID.len);
   var DATE_YEARS = new Int32Array(GRID.len);
+  var DATE_MONTHS = new Int32Array(GRID.len);
+  var DATE_WEEKS = new Array(GRID.len);
   for (var di = 0; di < GRID.len; di++) {
     var dt = new Date(GRID.start + di * GRID.step);
     DATE_YEARS[di] = dt.getUTCFullYear();
+    DATE_MONTHS[di] = dt.getUTCMonth();
     DATE_STRS[di] = dt.toISOString().slice(0, 10);
+    // Pazartesi başlangıçlı hafta etiketi
+    var dow = (dt.getUTCDay() + 6) % 7;
+    var monDt = new Date(dt.getTime() - dow * 86400000);
+    DATE_WEEKS[di] = monDt.toISOString().slice(0, 10);
   }
-  var DATES_2526 = DATE_STRS.slice(IDX_2025);
+  var DATES_2026 = DATE_STRS.slice(IDX_2026);
 
   var byKey = new Map();
-  var byCell = new Map(); // "id|tf" -> [states]
+  var byCell = new Map();
   for (var i = 0; i < STATES.length; i++) {
     var st = STATES[i];
     byKey.set(st.key, st);
@@ -29,32 +37,22 @@
     byCell.get(ck).push(st);
   }
 
-  var STRAT_META = new Map();
-  (D.strategies || []).forEach(function (s) { STRAT_META.set(s.id, s); });
-
-  var ALL_TFS = ['15m', '1h', '4h', '1d', '1w'];
-  var LEVS = [1, 2, 5, 10, 15, 20];
-  var DUR_LABELS = ['< 1 gün', '1–3 gün', '3–7 gün', '7–14 gün', '14–35 gün', '35–65 gün', '65+ gün'];
-  var RET_LABELS = ['<-20%', '-20..-10%', '-10..-5%', '-5..-2%', '-2..-1%', '-1..0%', '0..1%', '1..2%', '2..5%', '5..10%', '10..20%', '>20%'];
-  var SEASON_LABELS = ['Kış (Ara-Şub)', 'İlkbahar (Mar-May)', 'Yaz (Haz-Ağu)', 'Sonbahar (Eyl-Kas)'];
-  var QTR_LABELS = ['Q1 (Oca-Mar)', 'Q2 (Nis-Haz)', 'Q3 (Tem-Eyl)', 'Q4 (Eki-Ara)'];
+  var ALL_TFS = ['1h', '4h', '1d', '1w', '15m'];
+  var DUR_LABELS = ['< 1 saat', '1–3 saat', '3–9 saat', '9–24 saat', '1–3 gün', '3–7 gün', '1–4 hafta', '> 4 hafta'];
+  var EXIT_LABELS = ['Stop-Loss (5m Korumacı SL)', 'İndikatör Çıkışı / TP', 'Ters Sinyal (Flip)', 'Süre Sınırı / Kapanış'];
+  var SEASON_LABELS = ['Kış', 'İlkbahar', 'Yaz', 'Sonbahar'];
   var MONTH_LABELS = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
   var DOW_LABELS = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
-  var HOUR_LABELS = ['00-03', '03-06', '06-09', '09-12', '12-15', '15-18', '18-21', '21-24'];
 
   var S = {
-    tfFilter: 'all',     // Sol Adım 1 timeframe filtresi ('all' veya '15m'..'1w')
-    vol: null,           // null = 520 sembol, veya 50..300
-    lev: 1,              // 1, 2, 5, 10, 15, 20
-    unit: 'usd',         // 'usd' ($10 işlem kasası) veya 'pct' (% getiri)
+    tfFilter: 'all',
+    vol: null,
+    unit: 'usd', // 'usd' ($10 1x kaldıraçsız kasa) veya 'pct' (1x % R)
     q: '',
-    sort: 'kasaAll',     // 'kasaAll', 'kasa2526', 'exp26', 'pf', 'wr'
-    stratId: null,       // Seçili strateji id
-    stratTf: null,       // Seçili stratejinin aktif timeframe'i
-    stateKey: null,      // Seçili varyant/filtre durumu key'i
-    qtrMode: 'timeline', // 'timeline' (2022 Q3..2026 Q3) veya 'agg' (Q1..Q4)
-    durMode: 'pnl',      // 'pnl' (Kâr/Zarar $) veya 'count' (İşlem sayısı & WR)
-    dowMode: 'dow',      // 'dow' (Haftanın günleri) veya 'hour' (Giriş saatleri)
+    sort: 'kasaAll',
+    stratId: null,
+    stratTf: null,
+    stateKey: null,
   };
 
   function el(id) { return document.getElementById(id); }
@@ -73,30 +71,34 @@
   function fmtUsd(v, d) {
     if (v == null || !isFinite(v)) return '—';
     var dec = d != null ? d : (Math.abs(v) >= 100 ? 0 : 1);
-    var s = (v >= 0 ? '+$' : '-$') + nf(Math.abs(v), dec);
-    return s;
+    return (v >= 0 ? '+$' : '-$') + nf(Math.abs(v), dec);
   }
   function fmtPct(v, d) {
     if (v == null || !isFinite(v)) return '—';
-    var dec = d != null ? d : 1;
+    var dec = d != null ? d : 2;
     var p = v * 100;
     return (p >= 0 ? '+' : '') + p.toFixed(dec) + '%';
   }
-  function fmtUnit(valR) {
-    // valR: r toplamı (1.0 = %100 getiri = $10 işlemde $10)
-    var scaled = valR * S.lev;
-    if (S.unit === 'usd') return fmtUsd(scaled * 10, Math.abs(scaled * 10) >= 100 ? 0 : 1);
-    return fmtPct(scaled, Math.abs(scaled * 100) >= 100 ? 0 : 1);
+  function fmtDurHours(h) {
+    if (h == null || !isFinite(h) || h <= 0) return '—';
+    if (h < 1) return Math.round(h * 60) + ' dk';
+    if (h < 48) return h.toFixed(1) + ' saat';
+    return (h / 24).toFixed(1) + ' gün (' + Math.round(h) + ' sa)';
   }
   function unitMult() {
-    // r toplamını seçili birime ($ veya %) çeviren çarpan
-    return S.lev * (S.unit === 'usd' ? 10 : 100);
+    // 26. Kaldıraçsız hesaplama: azami 1x kaldıraç ($10 işlem bazında 10, % bazında 100)
+    return S.unit === 'usd' ? 10 : 100;
   }
   function unitSuffix() {
     return S.unit === 'usd' ? ' $' : ' %';
   }
+  function fmtUnitVal(valR, dec) {
+    var m = unitMult();
+    var v = valR * m;
+    if (S.unit === 'usd') return fmtUsd(v, dec != null ? dec : (Math.abs(v) >= 100 ? 0 : 1));
+    return (v >= 0 ? '+' : '') + v.toFixed(dec != null ? dec : 1) + '%';
+  }
 
-  // Hacim setine göre bir durumun hem total hem 2026 işlem başı getirisinin pozitif olup olmadığını kontrol et
   function isStatePosBoth(st) {
     if (!st) return false;
     if (S.vol == null || !st.sets) return !!st.posBoth;
@@ -104,186 +106,155 @@
     if (vi < 0 || !st.sets[vi]) return !!st.posBoth;
     var vs = st.sets[vi];
     if (!vs.n || vs.sumR <= 0) return false;
-    var y26 = vs.ySum && vs.ySum[4]; // [n, w, posC, negC, durH]
+    var y26 = vs.ySum && vs.ySum[4];
     if (!y26 || !y26[0] || (y26[2] - y26[3]) <= 0) return false;
     return true;
   }
 
-  // Seçili hacim setine göre durumun aktif verilerini döndür
-  function getStateViewData(st) {
+  function unpackCat4(arr, count) {
+    var out = [];
+    for (var i = 0; i < count; i++) {
+      var o = i * 4;
+      var n = arr[o] || 0, w = arr[o + 1] || 0, pos = (arr[o + 2] || 0) / 100, neg = (arr[o + 3] || 0) / 100;
+      out.push({ n: n, w: w, loss: Math.max(0, n - w), pos: pos, neg: neg, net: pos - neg });
+    }
+    return out;
+  }
+
+  function unpackDur5(arr, count) {
+    var out = [];
+    for (var i = 0; i < count; i++) {
+      var o = i * 5;
+      var n = arr[o] || 0, w = arr[o + 1] || 0, pos = (arr[o + 2] || 0) / 100, neg = (arr[o + 3] || 0) / 100, dh = arr[o + 4] || 0;
+      out.push({ n: n, w: w, loss: Math.max(0, n - w), pos: pos, neg: neg, net: pos - neg, durHours: dh });
+    }
+    return out;
+  }
+
+  // Bir durum için hem TÜM YILLAR (all) hem SADECE 2026 (y26) veri paketini üretir
+  function getSplitData(st) {
     var agg = st.agg;
     var vi = S.vol != null ? VOL.sets.indexOf(S.vol) : -1;
     var vs = (vi >= 0 && st.sets && st.sets[vi]) ? st.sets[vi] : null;
 
-    var n = vs ? vs.n : agg.n;
-    var w = vs ? vs.w : agg.w;
-    var sumPos = vs ? vs.sumPos : agg.sumPos;
-    var sumNeg = vs ? vs.sumNeg : agg.sumNeg;
-    var sumR = vs ? vs.sumR : agg.sumR;
-    var durSum = vs ? vs.durSum : agg.durSum;
+    var yrs = agg.years;
+    var scalePos = [1, 1, 1, 1, 1];
+    var scaleNeg = [1, 1, 1, 1, 1];
+    var yearSummaries = [];
 
-    // Yıllık dizi: [{n, w, pos, neg, net, durSum}]
-    var years = [];
     for (var y = 0; y < 5; y++) {
       if (vs && vs.ySum && vs.ySum[y]) {
         var ys = vs.ySum[y];
         var yp = ys[2] / 100, yn = ys[3] / 100;
-        years.push({ year: 2022 + y, n: ys[0], w: ys[1], pos: yp, neg: yn, net: yp - yn, durSum: ys[4] });
+        yearSummaries.push({ year: 2022 + y, n: ys[0], w: ys[1], pos: yp, neg: yn, net: yp - yn, durSum: ys[4] });
+        scalePos[y] = yrs[y].sumPos > 1e-6 ? yp / yrs[y].sumPos : 0;
+        scaleNeg[y] = yrs[y].sumNeg > 1e-6 ? yn / yrs[y].sumNeg : 0;
       } else {
-        var Y = agg.years[y];
-        years.push({ year: 2022 + y, n: Y.n, w: Y.w, pos: Y.sumPos, neg: Y.sumNeg, net: Y.sumPos - Y.sumNeg, durSum: Y.durSum });
+        var Y = yrs[y];
+        yearSummaries.push({ year: 2022 + y, n: Y.n, w: Y.w, pos: Y.sumPos, neg: Y.sumNeg, net: Y.sumPos - Y.sumNeg, durSum: Y.durSum });
       }
     }
 
-    // Günlük brüt kâr ve brüt zarar (r biriminde; hacim filtresi seçiliyse yıllık orana göre ölçeklenir)
+    // Günlük seriler (1500 gün)
     var dayPos = new Float64Array(GRID.len);
     var dayNeg = new Float64Array(GRID.len);
-    var scalePos = [1, 1, 1, 1, 1];
-    var scaleNeg = [1, 1, 1, 1, 1];
-    if (vs) {
-      for (var yi = 0; yi < 5; yi++) {
-        var baseP = agg.years[yi].sumPos, baseN = agg.years[yi].sumNeg;
-        scalePos[yi] = baseP > 1e-6 ? years[yi].pos / baseP : 0;
-        scaleNeg[yi] = baseN > 1e-6 ? years[yi].neg / baseN : 0;
-      }
-    }
     for (var d = 0; d < GRID.len; d++) {
-      var yrIdx = DATE_YEARS[d] - 2022;
-      dayPos[d] = (agg.dayPosC[d] / 100) * scalePos[yrIdx];
-      dayNeg[d] = (agg.dayNegC[d] / 100) * scaleNeg[yrIdx];
+      var yi = DATE_YEARS[d] - 2022;
+      dayPos[d] = (agg.dayPosC[d] / 100) * scalePos[yi];
+      dayNeg[d] = (agg.dayNegC[d] / 100) * scaleNeg[yi];
     }
 
-    // Kategori kovalarını topla
-    function sumCat4(key, count) {
-      var srcArr = vs ? vs[key] : null;
-      if (!srcArr) {
-        srcArr = new Array(count * 4).fill(0);
-        for (var y0 = 0; y0 < 5; y0++) {
-          var ya = agg.years[y0][key];
-          for (var k = 0; k < ya.length; k++) srcArr[k] += ya[k];
-        }
+    // Tüm yıllar toplam kovaları
+    function sumAllYearsArr(key, len) {
+      if (vs && vs[key]) return vs[key];
+      var a = new Array(len).fill(0);
+      for (var y0 = 0; y0 < 5; y0++) {
+        var src = yrs[y0][key] || [];
+        for (var k = 0; k < len; k++) a[k] += src[k] || 0;
       }
-      var rows = [];
-      for (var bi = 0; bi < count; bi++) {
-        var o = bi * 4;
-        var bn = srcArr[o], bw = srcArr[o + 1], bp = srcArr[o + 2] / 100, bng = srcArr[o + 3] / 100;
-        rows.push({ n: bn, w: bw, pos: bp, neg: bng, net: bp - bng });
-      }
-      return rows;
+      return a;
     }
 
-    function sumDur5() {
-      var srcArr = vs ? vs.dur : null;
-      if (!srcArr) {
-        srcArr = new Array(7 * 5).fill(0);
-        for (var y0 = 0; y0 < 5; y0++) {
-          var ya = agg.years[y0].dur;
-          for (var k = 0; k < ya.length; k++) srcArr[k] += ya[k];
-        }
-      }
-      var rows = [];
-      for (var bi = 0; bi < 7; bi++) {
-        var o = bi * 5;
-        var bn = srcArr[o], bw = srcArr[o + 1], bp = srcArr[o + 2] / 100, bng = srcArr[o + 3] / 100, bd = srcArr[o + 4];
-        rows.push({ n: bn, w: bw, pos: bp, neg: bng, net: bp - bng, durDays: bd });
-      }
-      return rows;
-    }
+    var y26Src = (vs && vs.y26) ? vs.y26 : yrs[4];
 
-    function sumRet3() {
-      var srcArr = vs ? vs.ret : null;
-      if (!srcArr) {
-        srcArr = new Array(12 * 3).fill(0);
-        for (var y0 = 0; y0 < 5; y0++) {
-          var ya = agg.years[y0].ret;
-          for (var k = 0; k < ya.length; k++) srcArr[k] += ya[k];
-        }
-      }
-      var rows = [];
-      for (var bi = 0; bi < 12; bi++) {
-        var o = bi * 3;
-        var bn = srcArr[o], bp = srcArr[o + 1] / 100, bng = srcArr[o + 2] / 100;
-        rows.push({ n: bn, pos: bp, neg: bng, net: bp - bng });
-      }
-      return rows;
-    }
+    var allSummary = {
+      n: vs ? vs.n : agg.n,
+      w: vs ? vs.w : agg.w,
+      pos: vs ? vs.sumPos : agg.sumPos,
+      neg: vs ? vs.sumNeg : agg.sumNeg,
+      net: vs ? vs.sumR : agg.sumR,
+      durSum: vs ? vs.durSum : agg.durSum,
+      dayPos: dayPos,
+      dayNeg: dayNeg,
+      dates: DATE_STRS,
+      weeks: DATE_WEEKS,
+      dur: unpackDur5(sumAllYearsArr('dur', 8 * 5), 8),
+      season: unpackCat4(sumAllYearsArr('season', 4 * 4), 4),
+      dow: unpackCat4(sumAllYearsArr('dow', 7 * 4), 7),
+      ls: unpackCat4(sumAllYearsArr('ls', 2 * 4), 2),
+      exit: unpackCat4(sumAllYearsArr('exit', 4 * 4), 4),
+      coins: agg.coins || [],
+    };
+    allSummary.loss = Math.max(0, allSummary.n - allSummary.w);
 
-    function sumLs4() {
-      var srcArr = vs ? vs.ls : null;
-      if (!srcArr) {
-        srcArr = new Array(2 * 4).fill(0);
-        for (var y0 = 0; y0 < 5; y0++) {
-          var ya = agg.years[y0].ls;
-          for (var k = 0; k < ya.length; k++) srcArr[k] += ya[k];
-        }
-      }
-      var out = [];
-      for (var s = 0; s < 2; s++) {
-        var o = s * 4;
-        out.push({ n: srcArr[o], w: srcArr[o + 1], pos: srcArr[o + 2] / 100, neg: srcArr[o + 3] / 100, net: (srcArr[o + 2] - srcArr[o + 3]) / 100 });
-      }
-      return out;
-    }
+    var y26Summary = {
+      n: yearSummaries[4].n,
+      w: yearSummaries[4].w,
+      pos: yearSummaries[4].pos,
+      neg: yearSummaries[4].neg,
+      net: yearSummaries[4].net,
+      durSum: yearSummaries[4].durSum,
+      dayPos: dayPos.slice(IDX_2026),
+      dayNeg: dayNeg.slice(IDX_2026),
+      dates: DATES_2026,
+      weeks: DATE_WEEKS.slice(IDX_2026),
+      dur: unpackDur5(y26Src.dur || new Array(40).fill(0), 8),
+      season: unpackCat4(y26Src.season || new Array(16).fill(0), 4),
+      dow: unpackCat4(y26Src.dow || new Array(28).fill(0), 7),
+      ls: unpackCat4(y26Src.ls || new Array(8).fill(0), 2),
+      exit: unpackCat4(y26Src.exit || new Array(16).fill(0), 4),
+      coins: (agg.coins26 && agg.coins26.length) ? agg.coins26 : (agg.coins || []),
+    };
+    y26Summary.loss = Math.max(0, y26Summary.n - y26Summary.w);
 
-    // 17 takvim çeyreği (2022 Q3 .. 2026 Q3)
-    var qtrTimeline = [];
-    for (var y1 = 0; y1 < 5; y1++) {
-      var Yq = agg.years[y1].quarter;
-      var sp = scalePos[y1], sn = scaleNeg[y1];
-      for (var q = 0; q < 4; q++) {
-        if (y1 === 0 && q < 2) continue; // 2022 Q1-Q2 veri öncesi
-        if (y1 === 4 && q > 2) continue; // 2026 Q4 henüz yok
-        var qo = q * 4;
-        var qn = Math.round(Yq[qo] * (sp || 1));
-        var qw = Math.round(Yq[qo + 1] * (sp || 1));
-        var qp = (Yq[qo + 2] / 100) * sp;
-        var qng = (Yq[qo + 3] / 100) * sn;
-        qtrTimeline.push({ label: (2022 + y1) + ' Q' + (q + 1), n: qn, w: qw, pos: qp, neg: qng, net: qp - qng });
-      }
-    }
-
-    // Yıl x Ay matrisi (5 x 12)
+    // Yıl x Ay matrisi (5 yıl x 12 ay)
     var monthMatrix = [];
+    var timelineMonthsAll = [];
+    var timelineMonths26 = [];
     for (var y2 = 0; y2 < 5; y2++) {
-      var Ym = agg.years[y2].month;
-      var sp2 = scalePos[y2], sn2 = scaleNeg[y2];
+      var mArr = unpackCat4(yrs[y2].month, 12);
+      var sp = scalePos[y2], sn = scaleNeg[y2];
       var mRow = [];
       for (var m = 0; m < 12; m++) {
-        var mo = m * 4;
-        var mn = Math.round(Ym[mo] * (sp2 || 1));
-        var mw = Math.round(Ym[mo + 1] * (sp2 || 1));
-        var mp = (Ym[mo + 2] / 100) * sp2;
-        var mng = (Ym[mo + 3] / 100) * sn2;
-        mRow.push({ n: mn, w: mw, pos: mp, neg: mng, net: mp - mng });
+        var cell = {
+          ym: (2022 + y2) + '-' + String(m + 1).padStart(2, '0'),
+          label: MONTH_LABELS[m] + ' ' + String(2022 + y2).slice(2),
+          n: Math.round(mArr[m].n * (sp || 1)),
+          w: Math.round(mArr[m].w * (sp || 1)),
+          pos: mArr[m].pos * sp,
+          neg: mArr[m].neg * sn,
+        };
+        cell.net = cell.pos - cell.neg;
+        mRow.push(cell);
+        if (!((y2 === 0 && m < 7) || (y2 === 4 && m > 8))) {
+          timelineMonthsAll.push(cell);
+          if (y2 === 4) timelineMonths26.push(cell);
+        }
       }
       monthMatrix.push(mRow);
     }
 
     return {
       st: st,
-      n: n,
-      w: w,
-      sumPos: sumPos,
-      sumNeg: sumNeg,
-      sumR: sumR,
-      durSum: durSum,
-      years: years,
-      dayPos: dayPos,
-      dayNeg: dayNeg,
-      dur: sumDur5(),
-      season: sumCat4('season', 4),
-      quarter: sumCat4('quarter', 4),
-      qtrTimeline: qtrTimeline,
-      month: sumCat4('month', 12),
+      all: allSummary,
+      y26: y26Summary,
+      years: yearSummaries,
       monthMatrix: monthMatrix,
-      dow: sumCat4('dow', 7),
-      hour: sumCat4('hour', 8),
-      ret: sumRet3(),
-      ls: sumLs4(),
+      timelineMonthsAll: timelineMonthsAll,
+      timelineMonths26: timelineMonths26,
     };
   }
 
-  // Seçili timeframe ve pozitiflik kuralına uyan aday durumları getir
   function getValidCandidates() {
     var q = S.q.trim().toLowerCase();
     return STATES.filter(function (st) {
@@ -298,20 +269,23 @@
     });
   }
 
-  // Strateji listesini (benzersiz strateji id'leri olarak) oluştur ve sırala
+  function scoreForSort(st) {
+    var sd = getSplitData(st);
+    if (S.sort === 'kasaAll') return sd.all.net;
+    if (S.sort === 'kasa26') return sd.y26.net;
+    if (S.sort === 'exp26') return sd.y26.n ? sd.y26.net / sd.y26.n : -999;
+    if (S.sort === 'pf') return sd.all.neg > 1e-6 ? sd.all.pos / sd.all.neg : 99;
+    if (S.sort === 'wr') return sd.all.n ? sd.all.w / sd.all.n : 0;
+    return sd.all.net;
+  }
+
   function getFilteredStrategies() {
     var cands = getValidCandidates();
     var map = new Map();
     for (var i = 0; i < cands.length; i++) {
       var st = cands[i];
       if (!map.has(st.id)) {
-        map.set(st.id, {
-          id: st.id,
-          title: st.title,
-          tfs: new Set(),
-          bestState: st,
-          states: [],
-        });
+        map.set(st.id, { id: st.id, title: st.title, tfs: new Set(), bestState: st, states: [] });
       }
       var g = map.get(st.id);
       g.tfs.add(st.tf);
@@ -323,17 +297,6 @@
     return arr;
   }
 
-  function scoreForSort(st) {
-    var vd = getStateViewData(st);
-    if (S.sort === 'kasaAll') return vd.sumR * 10;
-    if (S.sort === 'kasa2526') return (vd.years[3].net + vd.years[4].net) * 10;
-    if (S.sort === 'exp26') return vd.years[4].n ? (vd.years[4].net / vd.years[4].n) * 10 : -999;
-    if (S.sort === 'pf') return vd.sumNeg > 1e-6 ? vd.sumPos / vd.sumNeg : 99;
-    if (S.sort === 'wr') return vd.n ? vd.w / vd.n : 0;
-    return vd.sumR * 10;
-  }
-
-  // Seçili strateji ve timeframe'in tüm durumlarını (temel, varyant1..3, single:*) getir
   function getCellStates(id, tf) {
     return byCell.get(id + '|' + tf) || [];
   }
@@ -359,7 +322,6 @@
     var cellStates = getCellStates(S.stratId, S.stratTf);
     var curState = byKey.get(S.stateKey);
     if (!curState || curState.id !== S.stratId || curState.tf !== S.stratTf) {
-      // Bu hücredeki en iyi pozitif varyantı seç
       var validVars = cellStates.filter(function (s) { return !s.isSingle && s.kind !== 'temel' && isStatePosBoth(s); });
       validVars.sort(function (a, b) { return scoreForSort(b) - scoreForSort(a); });
       var pick = validVars[0] || cellStates.find(function (s) { return isStatePosBoth(s); }) || cellStates[0];
@@ -367,25 +329,30 @@
     }
   }
 
-  /* ------------------------------ SOL PANEL RENDER ------------------------------ */
+  function makeChip(label, active, count, onClick) {
+    var b = document.createElement('button');
+    b.className = 'chip' + (active ? ' on' : '');
+    b.innerHTML = esc(label) + (count != null ? '<span class="c">' + count + '</span>' : '');
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  /* ------------------------------ SOL PANEL ------------------------------ */
   function renderSidebar() {
-    // 1. Timeframe chipleri
+    var allCands = STATES.filter(function (s) { return s.isCandidate && isStatePosBoth(s); });
     var tfHost = el('tfChips');
     tfHost.innerHTML = '';
-    var allCands = STATES.filter(function (s) { return s.isCandidate && isStatePosBoth(s); });
-    var allIds = new Set(allCands.map(function (s) { return s.id; }));
-    tfHost.appendChild(makeChip('Tümü', S.tfFilter === 'all', allIds.size, function () {
+    tfHost.appendChild(makeChip('Tümü', S.tfFilter === 'all', allCands.length, function () {
       S.tfFilter = 'all'; renderAll();
     }));
     ALL_TFS.forEach(function (tf) {
-      var cnt = new Set(allCands.filter(function (s) { return s.tf === tf; }).map(function (s) { return s.id; })).size;
+      var cnt = allCands.filter(function (s) { return s.tf === tf; }).length;
       if (!cnt) return;
       tfHost.appendChild(makeChip(tf, S.tfFilter === tf, cnt, function () {
         S.tfFilter = tf; S.stratTf = tf; renderAll();
       }));
     });
 
-    // Hacim chipleri
     var volHost = el('volChips');
     volHost.innerHTML = '';
     volHost.appendChild(makeChip('Tümü (520)', S.vol == null, null, function () { S.vol = null; renderAll(); }));
@@ -393,39 +360,29 @@
       volHost.appendChild(makeChip('Top ' + v, S.vol === v, null, function () { S.vol = v; renderAll(); }));
     });
 
-    // Kaldıraç chipleri
-    var levHost = el('levChips');
-    levHost.innerHTML = '';
-    LEVS.forEach(function (L) {
-      levHost.appendChild(makeChip(L + 'x', S.lev === L, null, function () { S.lev = L; renderAll(); }));
-    });
-
-    // Birim chipleri
     var unitHost = el('unitChips');
     unitHost.innerHTML = '';
-    unitHost.appendChild(makeChip('$10 Kasa ($)', S.unit === 'usd', null, function () { S.unit = 'usd'; renderAll(); }));
-    unitHost.appendChild(makeChip('Oransal (%)', S.unit === 'pct', null, function () { S.unit = 'pct'; renderAll(); }));
+    unitHost.appendChild(makeChip('1× Kasa ($10/işlem)', S.unit === 'usd', null, function () { S.unit = 'usd'; renderAll(); }));
+    unitHost.appendChild(makeChip('1× Oransal (%)', S.unit === 'pct', null, function () { S.unit = 'pct'; renderAll(); }));
 
-    // 2. Strateji Listesi ve Tek Tek İlerleme
     var strats = getFilteredStrategies();
     var idx = strats.findIndex(function (x) { return x.id === S.stratId; });
-    el('stepPos').textContent = (idx + 1) + ' / ' + strats.length;
+    el('stepPos').textContent = (idx + 1) + ' / ' + strats.length + ' (' + allCands.length + ' senaryo)';
 
     var sHost = el('stratList');
     sHost.innerHTML = strats.map(function (g, i) {
-      var vd = getStateViewData(g.bestState);
-      var y26Exp = vd.years[4].n ? (vd.years[4].net / vd.years[4].n) * 10 * S.lev : 0;
+      var sd = getSplitData(g.bestState);
       var tfsHtml = ALL_TFS.filter(function (t) { return g.tfs.has(t); }).map(function (t) {
         return '<span class="tf-mini">' + t + '</span>';
       }).join('');
       return '<div class="strat-item' + (g.id === S.stratId ? ' on' : '') + '" data-id="' + esc(g.id) + '">' +
         '<div class="strat-r1">' +
           '<span class="strat-name">' + (i + 1) + '. ' + esc(g.title) + '</span>' +
-          '<span class="strat-kasa">' + fmtUnit(vd.sumR) + '</span>' +
+          '<span class="strat-kasa">' + fmtUnitVal(sd.all.net, 0) + '</span>' +
         '</div>' +
         '<div class="strat-r2">' +
-          '<span class="tf-mini-list">' + tfsHtml + '</span>' +
-          '<span>2026: <b>' + fmtUsd(y26Exp, 2) + '</b>/işlem</span>' +
+          '<span>' + tfsHtml + '</span>' +
+          '<span>2026: <b>' + fmtUnitVal(sd.y26.net, 0) + '</b></span>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -439,7 +396,6 @@
       });
     });
 
-    // 3. Seçili Stratejinin Timeframe ve Varyant Seçimi (Sol Adım 3)
     var curStrat = strats.find(function (x) { return x.id === S.stratId; });
     var stfHost = el('stratTfChips');
     stfHost.innerHTML = '';
@@ -458,12 +414,11 @@
       return isStatePosBoth(s);
     });
     varHost.innerHTML = cellStates.map(function (st) {
-      var vd = getStateViewData(st);
-      var lbl = st.kind === 'temel' ? 'Filtresiz (Temel Baz)' : st.kind.replace('varyant', 'Varyant ') + (st.in93 ? ' ★' : '');
-      var wr = vd.n ? (vd.w / vd.n * 100).toFixed(1) + '%' : '—';
+      var sd = getSplitData(st);
+      var lbl = st.kind === 'temel' ? 'Filtresiz (Temel)' : st.kind.replace('varyant', 'Senaryo ') + (st.in93 ? ' ★' : '');
       return '<div class="var-item' + (st.key === S.stateKey ? ' on' : '') + '" data-key="' + esc(st.key) + '">' +
-        '<div class="var-r1"><span>' + esc(lbl) + '</span><span style="color:var(--pos-bright);font-family:var(--font-mono)">' + fmtUnit(vd.sumR) + '</span></div>' +
-        '<div class="var-r2">' + esc(st.ad) + ' · ' + nf(vd.n) + ' işlem · WR ' + wr + '</div>' +
+        '<div class="var-r1"><span>' + esc(lbl) + '</span><span style="color:var(--pos-bright);font-family:var(--font-mono)">' + fmtUnitVal(sd.all.net, 0) + '</span></div>' +
+        '<div class="var-r2">' + esc(st.ad) + ' · 2026: ' + fmtUnitVal(sd.y26.net, 0) + '</div>' +
       '</div>';
     }).join('');
 
@@ -475,42 +430,30 @@
     });
   }
 
-  function makeChip(label, active, count, onClick) {
-    var b = document.createElement('button');
-    b.className = 'chip' + (active ? ' on' : '');
-    b.innerHTML = esc(label) + (count != null ? '<span class="c">' + count + '</span>' : '');
-    b.addEventListener('click', onClick);
-    return b;
-  }
-
-  /* --------------------- ÜST BAŞLIK & SAĞ FİLTRE SWITCH BOX --------------------- */
-  function renderHeaderAndSwitchBox() {
-    var st = byKey.get(S.stateKey);
-    if (!st) return;
-    var vd = getStateViewData(st);
+  /* --------------------- ÜST BAŞLIK & SWITCH BOX --------------------- */
+  function renderHeaderAndSwitchBox(sd) {
+    var st = sd.st;
     var cellStates = getCellStates(st.id, st.tf);
     var baseSt = cellStates.find(function (x) { return x.kind === 'temel'; }) || st;
-    var baseVd = getStateViewData(baseSt);
+    var baseSd = getSplitData(baseSt);
 
     el('selTitle').textContent = st.title + ' (' + st.id.toUpperCase() + ' · ' + st.tf + ')';
-    el('selSub').textContent = 'Aktif Filtre: ' + (st.kind === 'temel' ? 'Filtresiz (Temel Strateji)' : st.ad);
+    el('selSub').textContent = 'Seçili Filtre: ' + (st.kind === 'temel' ? 'Filtresiz (Temel Strateji)' : st.ad);
 
-    var badges = [
-      '<span class="badge pos">✓ Total & 2026 Pozitif</span>',
-      '<span class="badge acc">Zaman Dilimi: ' + esc(st.tf) + '</span>',
+    el('selBadges').innerHTML = [
+      '<span class="badge pos">✓ 26. Azami 1× Kaldıraçsız Hesaplama</span>',
+      '<span class="badge acc">✓ 24. 5dk Çıkış Çözümlemesi</span>',
+      '<span class="badge gold">✓ 25. Aynı 5m Mumda Korumacı SL Önce</span>',
+      '<span class="badge">Zaman Dilimi: ' + esc(st.tf) + '</span>',
       '<span class="badge">' + (S.vol ? 'En Hacimli Top ' + S.vol + ' Coin' : '520 Sembol Tam Evren') + '</span>',
-      '<span class="badge gold">' + S.lev + 'x · Her İşleme $10</span>',
-    ];
-    if (st.in93) badges.push('<span class="badge pos">★ 5/6 Homojen Adayı</span>');
-    el('selBadges').innerHTML = badges.join('');
+    ].join('');
 
     var rulesHtml = (st.rules || []).map(function (r, idx) {
       return '<div class="rule-pill"><b>Kural ' + (idx + 1) + ':</b> ' + esc(r) + '</div>';
     }).join('');
-    rulesHtml += '<div class="rule-pill"><b>Yön & Çıkış:</b> ' + (st.dir === 'long' ? 'Sadece Long' : 'Long + Short') + ' · Stop: ' + esc(st.stop) + '</div>';
+    rulesHtml += '<div class="rule-pill"><b>Yön & Stop:</b> ' + (st.dir === 'long' ? 'Sadece Long' : 'Long + Short') + ' · Stop: ' + esc(st.stop) + '</div>';
     el('selRules').innerHTML = rulesHtml;
 
-    // Sağ Switch Box: Bu hücredeki benzersiz tekil filtreleri listele
     var allFilterMap = new Map();
     cellStates.forEach(function (cs) {
       (cs.filters || []).forEach(function (f) {
@@ -527,7 +470,7 @@
         var isOn = activeSet.has(f.k);
         return '<div class="sw-row' + (isOn ? ' on' : '') + '" data-fk="' + esc(f.k) + '">' +
           '<div class="sw-info">' +
-            '<div class="sw-title">' + esc(f.title) + ' <span style="color:var(--dim);font-family:var(--font-mono);font-size:11px">[' + esc(f.k) + ']</span></div>' +
+            '<div class="sw-title">' + esc(f.title) + ' <span style="color:var(--dim);font-family:var(--font-mono);font-size:10.5px">[' + esc(f.k) + ']</span></div>' +
             '<div class="sw-desc">' + esc(f.desc) + '</div>' +
           '</div>' +
           '<div class="sw-toggle" role="switch" aria-checked="' + isOn + '"></div>' +
@@ -536,13 +479,11 @@
 
       swHost.querySelectorAll('.sw-row').forEach(function (row) {
         row.addEventListener('click', function () {
-          var fk = row.getAttribute('data-fk');
-          toggleFilterSwitch(fk, cellStates);
+          toggleFilterSwitch(row.getAttribute('data-fk'), cellStates);
         });
       });
     }
 
-    // Hızlı Varyant Preset Butonları
     var presetHost = el('presetRow');
     var presets = cellStates.filter(function (cs) {
       if (cs.isSingle) return false;
@@ -560,21 +501,18 @@
       });
     });
 
-    // Filtre Etkisi Delta Strip (Filtresiz Temel'e göre fark)
-    var diffKasa = (vd.sumR - baseVd.sumR) * 10 * S.lev;
-    var curAvg = vd.n ? (vd.sumR / vd.n) * 100 * S.lev : 0;
-    var baseAvg = baseVd.n ? (baseVd.sumR / baseVd.n) * 100 * S.lev : 0;
+    var diffAll = sd.all.net - baseSd.all.net;
+    var diff26 = sd.y26.net - baseSd.y26.net;
+    var curAvg = sd.all.n ? (sd.all.net / sd.all.n) * 100 : 0;
+    var baseAvg = baseSd.all.n ? (baseSd.all.net / baseSd.all.n) * 100 : 0;
     var diffAvg = curAvg - baseAvg;
-    var curWr = vd.n ? (vd.w / vd.n) * 100 : 0;
-    var baseWr = baseVd.n ? (baseVd.w / baseVd.n) * 100 : 0;
-    var diffWr = curWr - baseWr;
-    var keepRatio = baseVd.n ? (vd.n / baseVd.n) * 100 : 100;
+    var keepRatio = baseSd.all.n ? (sd.all.n / baseSd.all.n) * 100 : 100;
 
     el('deltaStrip').innerHTML =
-      '<div class="delta-item"><div class="dl">Kasa Farkı (vs Temel)</div><div class="dv" style="color:' + (diffKasa >= 0 ? 'var(--pos-bright)' : 'var(--neg-bright)') + '">' + fmtUsd(diffKasa, 0) + '</div></div>' +
-      '<div class="delta-item"><div class="dl">İşlem Başı Getiri Δ</div><div class="dv" style="color:' + (diffAvg >= 0 ? 'var(--pos-bright)' : 'var(--neg-bright)') + '">' + (diffAvg >= 0 ? '+' : '') + diffAvg.toFixed(2) + '%</div></div>' +
-      '<div class="delta-item"><div class="dl">Kazanma Oranı Δ</div><div class="dv" style="color:' + (diffWr >= 0 ? 'var(--pos-bright)' : 'var(--neg-bright)') + '">' + (diffWr >= 0 ? '+' : '') + diffWr.toFixed(1) + ' puan</div></div>' +
-      '<div class="delta-item"><div class="dl">Korunan İşlem</div><div class="dv" style="color:var(--acc)">%' + keepRatio.toFixed(1) + ' (' + nf(vd.n) + ')</div></div>';
+      '<div class="delta-item"><div class="dl">Tüm Yıllar Net Δ</div><div class="dv" style="color:' + (diffAll >= 0 ? 'var(--pos-bright)' : 'var(--neg-bright)') + '">' + fmtUnitVal(diffAll, 0) + '</div></div>' +
+      '<div class="delta-item"><div class="dl">2026 Net Δ</div><div class="dv" style="color:' + (diff26 >= 0 ? 'var(--pos-bright)' : 'var(--neg-bright)') + '">' + fmtUnitVal(diff26, 0) + '</div></div>' +
+      '<div class="delta-item"><div class="dl">Ort. Net R Δ</div><div class="dv" style="color:' + (diffAvg >= 0 ? 'var(--pos-bright)' : 'var(--neg-bright)') + '">' + (diffAvg >= 0 ? '+' : '') + diffAvg.toFixed(2) + '%</div></div>' +
+      '<div class="delta-item"><div class="dl">Korunan İşlem</div><div class="dv" style="color:var(--acc)">%' + keepRatio.toFixed(1) + ' (' + nf(sd.all.n) + ')</div></div>';
   }
 
   function toggleFilterSwitch(fk, cellStates) {
@@ -582,109 +520,98 @@
     var nextKeys = new Set(cur ? cur.keys : []);
     if (nextKeys.has(fk)) nextKeys.delete(fk);
     else nextKeys.add(fk);
-
     var arr = Array.from(nextKeys).sort();
     var sig = arr.join('+');
-
-    // 1) Tam eşleşen durum var mı? (temel, varyant1..3 veya single:fk)
-    var exact = cellStates.find(function (cs) {
-      return cs.keys.slice().sort().join('+') === sig;
-    });
-    if (exact) {
-      S.stateKey = exact.key;
-      renderAll();
-      return;
-    }
-
-    // 2) Eşleşen kombo yoksa: tıklanan fk yeni açıldıysa fk içeren en iyi varyantı veya tekil filtreyi seç
+    var exact = cellStates.find(function (cs) { return cs.keys.slice().sort().join('+') === sig; });
+    if (exact) { S.stateKey = exact.key; renderAll(); return; }
     if (nextKeys.has(fk)) {
       var withFk = cellStates.filter(function (cs) { return !cs.isSingle && cs.keys.indexOf(fk) >= 0 && isStatePosBoth(cs); });
       withFk.sort(function (a, b) { return scoreForSort(b) - scoreForSort(a); });
       var singleFk = cellStates.find(function (cs) { return cs.keys.length === 1 && cs.keys[0] === fk; });
       var target = (arr.length === 1 && singleFk) ? singleFk : (withFk[0] || singleFk);
-      if (target) {
-        S.stateKey = target.key;
-        renderAll();
-      }
+      if (target) { S.stateKey = target.key; renderAll(); }
     } else {
       var base = cellStates.find(function (cs) { return cs.kind === 'temel'; });
       if (base) { S.stateKey = base.key; renderAll(); }
     }
   }
 
-  /* ------------------------------ KPI KARTLARI ------------------------------ */
-  function renderKpis() {
-    var st = byKey.get(S.stateKey);
-    if (!st) return;
-    var vd = getStateViewData(st);
-    var L = S.lev;
+  /* ---------------- 5..12 KPI ÖZETİ (SOL: TÜM YILLAR | SAĞ: 2026) ---------------- */
+  function build8KpisHtml(sideObj) {
+    var n = sideObj.n;
+    var w = sideObj.w;
+    var l = sideObj.loss;
+    var wr = n ? (w / n) * 100 : 0;
+    var lr = n ? (l / n) * 100 : 0;
+    var avgR = n ? sideObj.net / n : 0;
+    var avgDurH = n ? sideObj.durSum / n : 0;
+    var pf = sideObj.neg > 1e-6 ? sideObj.pos / sideObj.neg : 99;
 
-    var kasaAll = vd.sumR * 10 * L;
-    var posAll = vd.sumPos * 10 * L;
-    var negAll = vd.sumNeg * 10 * L;
-    var kasa2526 = (vd.years[3].net + vd.years[4].net) * 10 * L;
-    var kasa2026 = vd.years[4].net * 10 * L;
-    var wr = vd.n ? (vd.w / vd.n) * 100 : 0;
-    var avgPct = vd.n ? (vd.sumR / vd.n) * 100 * L : 0;
-    var avg26Pct = vd.years[4].n ? (vd.years[4].net / vd.years[4].n) * 100 * L : 0;
-    var pf = vd.sumNeg > 1e-6 ? vd.sumPos / vd.sumNeg : 99;
-    var avgDurD = vd.n ? (vd.durSum / vd.n) / 24 : 0;
-
-    var cards = [
-      { l: '$10 İşlem Kasası (2022–26)', v: fmtUsd(kasaAll, 0), s: 'Brüt Kâr: ' + fmtUsd(posAll, 0) + ' · Zarar: -$' + nf(negAll, 0), c: kasaAll >= 0 ? 'pos' : 'neg' },
-      { l: '2025–2026 Özel Kasa ($10)', v: fmtUsd(kasa2526, 0), s: 'Sadece 2026 Net: ' + fmtUsd(kasa2026, 0), c: kasa2526 >= 0 ? 'pos' : 'neg' },
-      { l: 'İşlem Başı Ort. Getiri', v: (avgPct >= 0 ? '+' : '') + avgPct.toFixed(2) + '%', s: 'Her $10 işlemde ort. ' + fmtUsd((avgPct / 100) * 10, 2), c: 'pos' },
-      { l: '2026 İşlem Başı Getiri', v: (avg26Pct >= 0 ? '+' : '') + avg26Pct.toFixed(2) + '%', s: nf(vd.years[4].n) + ' işlem (2026 YTD)', c: 'pos' },
-      { l: 'Kazanma Oranı & İşlem', v: '%' + wr.toFixed(1), s: nf(vd.w) + ' kazanan / ' + nf(vd.n) + ' toplam', c: 'acc' },
-      { l: 'Profit Factor (Kâr/Zarar)', v: pf.toFixed(2) + 'x', s: 'Payoff: ' + (st.payoff || 1).toFixed(2) + 'x · R²: ' + ((st.cash && st.cash.r2Cash) || st.r2 || 0).toFixed(2), c: 'gold' },
-      { l: 'Ort. Kalma Süresi', v: avgDurD >= 1 ? avgDurD.toFixed(1) + ' gün' : (avgDurD * 24).toFixed(1) + ' saat', s: 'Maks Kasa DD: ' + fmtUsd((st.cash ? st.cash.maxDdAll : 0) * L, 0), c: 'acc' },
+    var items = [
+      { l: '5. Toplam İşlem Sayısı', v: nf(n), s: '1× Kaldıraçsız Simülasyon', c: 'acc' },
+      { l: '6. Kârlı İşlem Sayısı', v: nf(w), s: 'Kazanma Oranı: %' + wr.toFixed(1), c: 'pos' },
+      { l: '7. Zararlı / Başa Baş İşlem', v: nf(l), s: 'Kayıp Oranı: %' + lr.toFixed(1), c: 'neg' },
+      { l: '8. İşlem Başına Ort. Net Getiri', v: fmtPct(avgR, 2), s: '$10 işlemde ort. ' + fmtUsd(avgR * 10, 2), c: avgR >= 0 ? 'pos' : 'neg' },
+      { l: '9. Ort. İşlemde Kalış Süresi', v: fmtDurHours(avgDurH), s: 'Toplam: ' + nf(Math.round(sideObj.durSum / 24)) + ' gün', c: 'gold' },
+      { l: '10. Toplam Brüt Kâr', v: fmtUnitVal(sideObj.pos, 0), s: 'Oransal: +' + nf(sideObj.pos * 100, 1) + '%', c: 'pos' },
+      { l: '11. Toplam Brüt Zarar', v: '-' + fmtUnitVal(sideObj.neg, 0).replace(/^[+-]/, ''), s: 'Oransal: -' + nf(sideObj.neg * 100, 1) + '%', c: 'neg' },
+      { l: '12. Net Sonuç (Kâr − Zarar)', v: fmtUnitVal(sideObj.net, 0), s: 'Profit Factor: ' + pf.toFixed(2) + 'x', c: sideObj.net >= 0 ? 'pos' : 'neg' },
     ];
 
-    el('kpis').innerHTML = cards.map(function (c) {
-      return '<div class="kpi ' + c.c + '"><div class="l">' + esc(c.l) + '</div><div class="v ' + c.c + '">' + esc(c.v) + '</div><div class="s">' + esc(c.s) + '</div></div>';
+    return items.map(function (it) {
+      return '<div class="kpi-box ' + it.c + '">' +
+        '<div class="kl">' + esc(it.l) + '</div>' +
+        '<div class="kv ' + it.c + '">' + esc(it.v) + '</div>' +
+        '<div class="ks">' + esc(it.s) + '</div>' +
+      '</div>';
     }).join('');
   }
 
-  /* --------------------------- PLOTLY GRAFİK MOTORU --------------------------- */
-  var PLOT_CONFIG = {
+  function renderSplitKpis(sd) {
+    el('kpisAll').innerHTML = build8KpisHtml(sd.all);
+    el('kpis2026').innerHTML = build8KpisHtml(sd.y26);
+  }
+
+  /* ---------------------- PLOTLY GRAFİK FONKSİYONLARI ---------------------- */
+  var PLOT_CFG = {
     responsive: true,
     displaylogo: false,
     modeBarButtonsToRemove: ['lasso2d', 'select2d', 'autoScale2d'],
   };
 
-  function baseLayout(extra) {
+  function layoutBase(extra) {
     var lay = {
       paper_bgcolor: 'rgba(0,0,0,0)',
-      plot_bgcolor: 'rgba(11,17,28,0.65)',
+      plot_bgcolor: 'rgba(10,16,27,0.68)',
       font: {
         family: "'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif",
-        size: 12.5,
+        size: 12,
         color: '#dbe6f7',
       },
-      margin: { l: 58, r: 24, t: 28, b: 44 },
+      margin: { l: 54, r: 20, t: 24, b: 40 },
       xaxis: {
-        gridcolor: 'rgba(35,50,77,0.55)',
+        gridcolor: 'rgba(33,49,77,0.52)',
         zerolinecolor: '#364d73',
-        tickfont: { size: 11.5, color: '#9fb0cc' },
+        tickfont: { size: 11, color: '#9fb0cc' },
       },
       yaxis: {
-        gridcolor: 'rgba(35,50,77,0.55)',
+        gridcolor: 'rgba(33,49,77,0.52)',
         zerolinecolor: '#47628f',
-        zerolinewidth: 1.5,
-        tickfont: { size: 11.5, color: '#9fb0cc' },
+        zerolinewidth: 1.4,
+        tickfont: { size: 11, color: '#9fb0cc' },
       },
       legend: {
         orientation: 'h',
         x: 0,
         y: 1.13,
-        font: { size: 12, color: '#dbe6f7' },
+        font: { size: 11.5, color: '#dbe6f7' },
         bgcolor: 'rgba(0,0,0,0)',
       },
       hovermode: 'x unified',
       hoverlabel: {
-        bgcolor: '#0d1524',
-        bordercolor: '#3b82f6',
-        font: { family: "'Plus Jakarta Sans', sans-serif", size: 12.5, color: '#f0f4fc' },
+        bgcolor: '#0b1322',
+        bordercolor: '#38bdf8',
+        font: { family: "'Plus Jakarta Sans', sans-serif", size: 12, color: '#f1f5f9' },
       },
     };
     if (extra) {
@@ -699,256 +626,13 @@
     return lay;
   }
 
-  // 1A & 1B: Seçili Stratejide Filtrelerin Etkisi Grafikleri
-  function drawFilterImpactCharts() {
-    var st = byKey.get(S.stateKey);
-    if (!st) return;
-    var cellStates = getCellStates(st.id, st.tf);
-    var mult = unitMult();
+  function plotDivergingBars(domId, labels, rows, yTitle) {
+    var m = unitMult();
     var uLbl = unitSuffix();
-
-    // Grafik 1A: Filtresiz Temel vs Tekil Filtreler vs Varyantlar $10 Kasa Eğrileri
-    var tracesCurve = [];
-    var palette = ['#94a3b8', '#38bdf8', '#a855f7', '#f59e0b', '#10b981', '#ec4899', '#6366f1'];
-    var ordered = cellStates.slice().sort(function (a, b) {
-      if (a.kind === 'temel') return -1;
-      if (b.kind === 'temel') return 1;
-      if (a.isSingle !== b.isSingle) return a.isSingle ? 1 : -1;
-      return a.kind.localeCompare(b.kind);
-    });
-
-    ordered.forEach(function (cs, idx) {
-      var vd = getStateViewData(cs);
-      var cum = new Float64Array(GRID.len);
-      var s = 0;
-      for (var i = 0; i < GRID.len; i++) {
-        s += (vd.dayPos[i] - vd.dayNeg[i]) * mult;
-        cum[i] = Math.round(s * 10) / 10;
-      }
-      var isSel = cs.key === st.key;
-      var isBase = cs.kind === 'temel';
-      var name = isBase ? 'Filtresiz (Temel)' : (cs.isSingle ? 'Tekil: ' + cs.keyTitles[0] : cs.kind.replace('varyant', 'V') + ': ' + cs.keyTitles.join(' + '));
-      tracesCurve.push({
-        x: DATE_STRS,
-        y: Array.from(cum),
-        type: 'scatter',
-        mode: 'lines',
-        name: name + (isSel ? ' [SEÇİLİ]' : ''),
-        line: {
-          color: isSel ? '#22c55e' : (isBase ? '#f43f5e' : palette[idx % palette.length]),
-          width: isSel ? 3.2 : (isBase ? 2.2 : 1.6),
-          dash: isBase ? 'dot' : (cs.isSingle ? 'dash' : 'solid'),
-        },
-        opacity: isSel || isBase ? 1 : 0.78,
-      });
-    });
-
-    Plotly.react('cFilterCurve', tracesCurve, baseLayout({
-      yaxis: { title: 'Kasa Durumu (' + uLbl.trim() + ')' },
-    }), PLOT_CONFIG);
-
-    // Grafik 1B: Filtre Varyantlarının Brüt Kâr (Yeşil Yukarı), Brüt Zarar (Kırmızı Aşağı), Net Kasa ve İşlem Başı Getiri Karşılaştırması
-    var xNames = [];
-    var yPos = [], yNeg = [], yNet = [], customText = [];
-    ordered.forEach(function (cs) {
-      var vd = getStateViewData(cs);
-      var lbl = cs.kind === 'temel' ? 'Temel (Filtresiz)' : (cs.isSingle ? 'Tekil: ' + cs.keyTitles[0] : cs.kind.replace('varyant', 'Varyant '));
-      if (cs.key === st.key) lbl = '★ ' + lbl;
-      xNames.push(lbl);
-      var pVal = Math.round(vd.sumPos * mult * 10) / 10;
-      var nVal = -Math.round(vd.sumNeg * mult * 10) / 10;
-      var netVal = Math.round(vd.sumR * mult * 10) / 10;
-      yPos.push(pVal);
-      yNeg.push(nVal);
-      yNet.push(netVal);
-      var wr = vd.n ? (vd.w / vd.n * 100).toFixed(1) : '0.0';
-      var avg = vd.n ? (vd.sumR / vd.n * 100 * S.lev).toFixed(2) : '0.00';
-      customText.push(nf(vd.n) + ' işlem · WR %' + wr + ' · Ort: +' + avg + '%/işlem');
-    });
-
-    var tracesBars = [
-      {
-        x: xNames,
-        y: yPos,
-        type: 'bar',
-        name: 'Brüt Kâr (+' + uLbl.trim() + ')',
-        marker: { color: '#10b981' },
-        text: yPos.map(function (v) { return '+' + nf(v, 0) + uLbl; }),
-        textposition: 'outside',
-        cliponaxis: false,
-      },
-      {
-        x: xNames,
-        y: yNeg,
-        type: 'bar',
-        name: 'Brüt Zarar (-' + uLbl.trim() + ')',
-        marker: { color: '#f43f5e' },
-        text: yNeg.map(function (v) { return nf(v, 0) + uLbl; }),
-        textposition: 'outside',
-        cliponaxis: false,
-      },
-      {
-        x: xNames,
-        y: yNet,
-        text: customText,
-        type: 'scatter',
-        mode: 'lines+markers',
-        name: 'Net Kasa (' + uLbl.trim() + ')',
-        line: { color: '#fbbf24', width: 2.5 },
-        marker: { size: 9, symbol: 'diamond', color: '#fbbf24' },
-      },
-    ];
-
-    Plotly.react('cFilterBars', tracesBars, baseLayout({
-      barmode: 'relative',
-      xaxis: { type: 'category' },
-      yaxis: { title: 'Kâr / Zarar (' + uLbl.trim() + ')' },
-    }), PLOT_CONFIG);
-  }
-
-  // 2A & 2B: $10 Sabit İşlem Kasası Line Grafikleri (Tüm Dönem 2022–2026 & Sadece 2025–2026)
-  function drawCashLineCharts(vd) {
-    var mult = unitMult();
-    var uLbl = unitSuffix();
-
-    // 2A: Tüm Dönem (2022-08-01 -> 2026-09-08) 0$'dan başlayan kasa
-    var kasaAll = new Float64Array(GRID.len);
-    var peakAll = new Float64Array(GRID.len);
-    var sumAll = 0, pk = 0;
-    for (var i = 0; i < GRID.len; i++) {
-      sumAll += (vd.dayPos[i] - vd.dayNeg[i]) * mult;
-      kasaAll[i] = Math.round(sumAll * 100) / 100;
-      if (kasaAll[i] > pk) pk = kasaAll[i];
-      peakAll[i] = pk;
-    }
-
-    Plotly.react('cCashAll', [
-      {
-        x: DATE_STRS,
-        y: Array.from(peakAll),
-        type: 'scatter',
-        mode: 'lines',
-        name: 'Kasa Zirvesi (High Watermark)',
-        line: { color: 'rgba(148,163,184,0.45)', width: 1.2, dash: 'dot' },
-      },
-      {
-        x: DATE_STRS,
-        y: Array.from(kasaAll),
-        type: 'scatter',
-        mode: 'lines',
-        name: 'Kasa Durumu (0' + uLbl.trim() + ' Başlangıç)',
-        fill: 'tozeroy',
-        fillcolor: 'rgba(16,185,129,0.14)',
-        line: { color: '#10b981', width: 2.6 },
-      },
-    ], baseLayout({
-      yaxis: { title: 'Kasa Bakiyesi (' + uLbl.trim() + ')' },
-    }), PLOT_CONFIG);
-
-    // 2B: Sadece 2025–2026 (2025-01-01'de 0$'dan başlayan kasa)
-    var len2526 = GRID.len - IDX_2025;
-    var kasa2526 = new Float64Array(len2526);
-    var peak2526 = new Float64Array(len2526);
-    var sum25 = 0, pk25 = 0;
-    for (var j = 0; j < len2526; j++) {
-      var di = IDX_2025 + j;
-      sum25 += (vd.dayPos[di] - vd.dayNeg[di]) * mult;
-      kasa2526[j] = Math.round(sum25 * 100) / 100;
-      if (kasa2526[j] > pk25) pk25 = kasa2526[j];
-      peak2526[j] = pk25;
-    }
-
-    Plotly.react('cCash2526', [
-      {
-        x: DATES_2526,
-        y: Array.from(peak2526),
-        type: 'scatter',
-        mode: 'lines',
-        name: '2025–26 Kasa Zirvesi',
-        line: { color: 'rgba(148,163,184,0.45)', width: 1.2, dash: 'dot' },
-      },
-      {
-        x: DATES_2526,
-        y: Array.from(kasa2526),
-        type: 'scatter',
-        mode: 'lines',
-        name: '2025–2026 Kasa (01.01.2025 = 0' + uLbl.trim() + ')',
-        fill: 'tozeroy',
-        fillcolor: 'rgba(59,130,246,0.16)',
-        line: { color: '#3b82f6', width: 2.6 },
-      },
-    ], baseLayout({
-      yaxis: { title: '2025–26 Kasa (' + uLbl.trim() + ')' },
-    }), PLOT_CONFIG);
-  }
-
-  // 3A & 3B: Gün Gün Kâr (Yeşil Yukarı) ve Zarar (Kırmızı Aşağı) Histogramları (Tüm Dönem & 2025–2026)
-  function drawDailyHistograms(vd) {
-    var mult = unitMult();
-    var uLbl = unitSuffix();
-
-    var posAll = new Array(GRID.len);
-    var negAll = new Array(GRID.len);
-    for (var i = 0; i < GRID.len; i++) {
-      posAll[i] = Math.round(vd.dayPos[i] * mult * 100) / 100;
-      negAll[i] = -Math.round(vd.dayNeg[i] * mult * 100) / 100;
-    }
-
-    // 3A: Tüm Dönem Gün Gün Kâr ve Zarar
-    Plotly.react('cDailyAll', [
-      {
-        x: DATE_STRS,
-        y: posAll,
-        type: 'bar',
-        name: 'Günlük Kâr (+' + uLbl.trim() + ')',
-        marker: { color: '#10b981' },
-      },
-      {
-        x: DATE_STRS,
-        y: negAll,
-        type: 'bar',
-        name: 'Günlük Zarar (-' + uLbl.trim() + ')',
-        marker: { color: '#f43f5e' },
-      },
-    ], baseLayout({
-      barmode: 'relative',
-      bargap: 0,
-      yaxis: { title: 'Günlük Kâr / Zarar (' + uLbl.trim() + ')' },
-    }), PLOT_CONFIG);
-
-    // 3B: Sadece 2025–2026 Gün Gün Kâr ve Zarar
-    var pos2526 = posAll.slice(IDX_2025);
-    var neg2526 = negAll.slice(IDX_2025);
-    Plotly.react('cDaily2526', [
-      {
-        x: DATES_2526,
-        y: pos2526,
-        type: 'bar',
-        name: '2025–26 Günlük Kâr (+' + uLbl.trim() + ')',
-        marker: { color: '#22c55e' },
-      },
-      {
-        x: DATES_2526,
-        y: neg2526,
-        type: 'bar',
-        name: '2025–26 Günlük Zarar (-' + uLbl.trim() + ')',
-        marker: { color: '#ef4444' },
-      },
-    ], baseLayout({
-      barmode: 'relative',
-      bargap: 0.05,
-      yaxis: { title: '2025–26 Günlük (' + uLbl.trim() + ')' },
-    }), PLOT_CONFIG);
-  }
-
-  // Yardımcı: Yukarı Yeşil Kâr + Aşağı Kırmızı Zarar + Elmas Net Kâr Grafiği
-  function renderDivergingBarChart(domId, labels, rows, yTitle) {
-    var mult = unitMult();
-    var uLbl = unitSuffix();
-    var yPos = rows.map(function (r) { return Math.round(r.pos * mult * 10) / 10; });
-    var yNeg = rows.map(function (r) { return -Math.round(r.neg * mult * 10) / 10; });
-    var yNet = rows.map(function (r) { return Math.round(r.net * mult * 10) / 10; });
-    var metaTxt = rows.map(function (r) {
+    var yPos = rows.map(function (r) { return Math.round(r.pos * m * 10) / 10; });
+    var yNeg = rows.map(function (r) { return -Math.round(r.neg * m * 10) / 10; });
+    var yNet = rows.map(function (r) { return Math.round(r.net * m * 10) / 10; });
+    var meta = rows.map(function (r) {
       var wr = r.n ? (r.w / r.n * 100).toFixed(1) : '0.0';
       return nf(r.n) + ' işlem · WR %' + wr;
     });
@@ -958,75 +642,332 @@
         x: labels,
         y: yPos,
         type: 'bar',
-        name: 'Brüt Kâr (Yeşil +' + uLbl.trim() + ')',
-        marker: { color: '#10b981', line: { color: '#059669', width: 1 } },
-        text: yPos.map(function (v) { return '+' + nf(v, 0) + uLbl; }),
-        textposition: 'outside',
-        cliponaxis: false,
+        name: 'Brüt Kâr (+' + uLbl.trim() + ')',
+        marker: { color: '#10b981' },
       },
       {
         x: labels,
         y: yNeg,
         type: 'bar',
-        name: 'Brüt Zarar (Kırmızı -' + uLbl.trim() + ')',
-        marker: { color: '#f43f5e', line: { color: '#e11d48', width: 1 } },
-        text: yNeg.map(function (v) { return nf(v, 0) + uLbl; }),
-        textposition: 'outside',
-        cliponaxis: false,
+        name: 'Brüt Zarar (-' + uLbl.trim() + ')',
+        marker: { color: '#f43f5e' },
       },
       {
         x: labels,
         y: yNet,
-        text: metaTxt,
+        text: meta,
         type: 'scatter',
         mode: 'lines+markers',
-        name: 'Net Kâr (' + uLbl.trim() + ')',
-        line: { color: '#fbbf24', width: 2.5 },
-        marker: { size: 9, symbol: 'diamond', color: '#fbbf24', line: { color: '#080c14', width: 1.5 } },
+        name: 'Net Sonuç (' + uLbl.trim() + ')',
+        line: { color: '#fbbf24', width: 2.2 },
+        marker: { size: 7, symbol: 'diamond', color: '#fbbf24' },
       },
-    ], baseLayout({
+    ], layoutBase({
       barmode: 'relative',
       xaxis: { type: 'category' },
       yaxis: { title: yTitle || ('Kâr / Zarar (' + uLbl.trim() + ')') },
-    }), PLOT_CONFIG);
+    }), PLOT_CFG);
   }
 
-  // 4A, 4B, 4C: Yıl Yıl, Çeyrek Çeyrek ve Mevsim Mevsim Kâr / Zarar Grafikleri
-  function drawPeriodCharts(vd) {
-    // 4A: Yıl Yıl (2022, 2023, 2024, 2025, 2026)
-    var yLabels = vd.years.map(function (y) { return y.year === 2026 ? '2026 (YTD)' : String(y.year); });
-    renderDivergingBarChart('cYearly', yLabels, vd.years, 'Yıllık Kâr / Zarar');
-
-    // 4B: Çeyrek Çeyrek (2022 Q3..2026 Q3 veya Q1..Q4 Toplam)
-    if (S.qtrMode === 'timeline') {
-      var qLabs = vd.qtrTimeline.map(function (q) { return q.label; });
-      renderDivergingBarChart('cQuarterly', qLabs, vd.qtrTimeline, 'Çeyreklik Kâr / Zarar');
-    } else {
-      renderDivergingBarChart('cQuarterly', QTR_LABELS, vd.quarter, 'Q1–Q4 Toplam Kâr / Zarar');
+  // Satır 1 & 2: Kümülatif Net Özsermaye Eğrisi ve Drawdown Eğrisi (Sol: Tüm Yıllar | Sağ: 2026)
+  function drawEquityAndDrawdownPair(domEq, domDd, sideObj, colorLine) {
+    var m = unitMult();
+    var uLbl = unitSuffix();
+    var n = sideObj.dayPos.length;
+    var eq = new Float64Array(n);
+    var pk = new Float64Array(n);
+    var dd = new Float64Array(n);
+    var cur = 0, peak = 0;
+    for (var i = 0; i < n; i++) {
+      cur += (sideObj.dayPos[i] - sideObj.dayNeg[i]) * m;
+      eq[i] = Math.round(cur * 100) / 100;
+      if (eq[i] > peak) peak = eq[i];
+      pk[i] = peak;
+      dd[i] = Math.round((eq[i] - peak) * 100) / 100;
     }
 
-    // 4C: Mevsim Mevsim (Kış, İlkbahar, Yaz, Sonbahar)
-    renderDivergingBarChart('cSeasonal', SEASON_LABELS, vd.season, 'Mevsimsel Kâr / Zarar');
+    Plotly.react(domEq, [
+      {
+        x: sideObj.dates,
+        y: Array.from(pk),
+        type: 'scatter',
+        mode: 'lines',
+        name: 'Zirve (High Watermark)',
+        line: { color: 'rgba(148,163,184,0.45)', width: 1.2, dash: 'dot' },
+      },
+      {
+        x: sideObj.dates,
+        y: Array.from(eq),
+        type: 'scatter',
+        mode: 'lines',
+        name: 'Kümülatif Net Özsermaye (' + uLbl.trim() + ')',
+        fill: 'tozeroy',
+        fillcolor: colorLine === '#10b981' ? 'rgba(16,185,129,0.14)' : 'rgba(251,191,36,0.14)',
+        line: { color: colorLine, width: 2.5 },
+      },
+    ], layoutBase({
+      yaxis: { title: 'Net Özsermaye (' + uLbl.trim() + ')' },
+    }), PLOT_CFG);
+
+    Plotly.react(domDd, [
+      {
+        x: sideObj.dates,
+        y: Array.from(dd),
+        type: 'scatter',
+        mode: 'lines',
+        name: 'Drawdown (' + uLbl.trim() + ')',
+        fill: 'tozeroy',
+        fillcolor: 'rgba(244,63,94,0.22)',
+        line: { color: '#f43f5e', width: 2 },
+      },
+    ], layoutBase({
+      yaxis: { title: 'Zirveden Düşüş (' + uLbl.trim() + ')' },
+    }), PLOT_CFG);
   }
 
-  // 5A & 5B: İşlemde Kalma Süreleri (1-3g, 3-7g, 7-14g, 14-35g, 35-65g, 65+g) & Getiri Dağılımı
-  function drawDurationAndReturnCharts(vd) {
-    var mult = unitMult();
+  // Satır 3: Filtreli–Filtresiz Net Getiri Karşılaştırması (Sol: Tüm Yıllar | Sağ: 2026)
+  function drawFilterCompareRow(sd) {
+    var st = sd.st;
+    var cellStates = getCellStates(st.id, st.tf);
+    var m = unitMult();
+    var uLbl = unitSuffix();
+    var palette = ['#94a3b8', '#38bdf8', '#a855f7', '#f59e0b', '#10b981'];
+
+    var ordered = cellStates.filter(function (cs) {
+      return !cs.isSingle && (cs.kind === 'temel' || isStatePosBoth(cs));
+    });
+
+    function buildTraces(is2026) {
+      var startIdx = is2026 ? IDX_2026 : 0;
+      var xDates = is2026 ? DATES_2026 : DATE_STRS;
+      return ordered.map(function (cs, idx) {
+        var csd = getSplitData(cs);
+        var len = GRID.len - startIdx;
+        var yArr = new Float64Array(len);
+        var s = 0;
+        for (var i = 0; i < len; i++) {
+          var di = startIdx + i;
+          s += (csd.all.dayPos[di] - csd.all.dayNeg[di]) * m;
+          yArr[i] = Math.round(s * 10) / 10;
+        }
+        var isSel = cs.key === st.key;
+        var isBase = cs.kind === 'temel';
+        var lbl = isBase ? 'Filtresiz (Temel)' : cs.kind.replace('varyant', 'V') + ': ' + cs.keyTitles.join(' + ');
+        return {
+          x: xDates,
+          y: Array.from(yArr),
+          type: 'scatter',
+          mode: 'lines',
+          name: lbl + (isSel ? ' [SEÇİLİ]' : ''),
+          line: {
+            color: isSel ? '#22c55e' : (isBase ? '#f43f5e' : palette[idx % palette.length]),
+            width: isSel ? 3 : (isBase ? 2.2 : 1.7),
+            dash: isBase ? 'dot' : 'solid',
+          },
+        };
+      });
+    }
+
+    Plotly.react('cFltCmp_all', buildTraces(false), layoutBase({
+      yaxis: { title: 'Tüm Yıllar Net (' + uLbl.trim() + ')' },
+    }), PLOT_CFG);
+
+    Plotly.react('cFltCmp_26', buildTraces(true), layoutBase({
+      yaxis: { title: '2026 Net (' + uLbl.trim() + ')' },
+    }), PLOT_CFG);
+  }
+
+  // Satır 4: Hareketli 30, 90 ve 365 Günlük Net Getiri (Sol: Tüm Yıllar | Sağ: 2026)
+  function drawRollingRow(sd) {
+    var m = unitMult();
+    var uLbl = unitSuffix();
+    var netDay = new Float64Array(GRID.len);
+    for (var i = 0; i < GRID.len; i++) netDay[i] = (sd.all.dayPos[i] - sd.all.dayNeg[i]) * m;
+
+    function rollingSum(win) {
+      var out = new Float64Array(GRID.len);
+      var s = 0;
+      for (var k = 0; k < GRID.len; k++) {
+        s += netDay[k];
+        if (k >= win) s -= netDay[k - win];
+        out[k] = Math.round(s * 10) / 10;
+      }
+      return out;
+    }
+
+    var r30 = rollingSum(30);
+    var r90 = rollingSum(90);
+    var r365 = rollingSum(365);
+
+    Plotly.react('cRoll_all', [
+      { x: DATE_STRS, y: Array.from(r30), type: 'scatter', mode: 'lines', name: '30 Günlük Net', line: { color: '#38bdf8', width: 1.5 } },
+      { x: DATE_STRS, y: Array.from(r90), type: 'scatter', mode: 'lines', name: '90 Günlük Net', line: { color: '#10b981', width: 2.1 } },
+      { x: DATE_STRS, y: Array.from(r365), type: 'scatter', mode: 'lines', name: '365 Günlük Net', line: { color: '#fbbf24', width: 2.5 } },
+    ], layoutBase({ yaxis: { title: 'Hareketli Net (' + uLbl.trim() + ')' } }), PLOT_CFG);
+
+    Plotly.react('cRoll_26', [
+      { x: DATES_2026, y: Array.from(r30.slice(IDX_2026)), type: 'scatter', mode: 'lines', name: '30 Günlük Net', line: { color: '#38bdf8', width: 1.8 } },
+      { x: DATES_2026, y: Array.from(r90.slice(IDX_2026)), type: 'scatter', mode: 'lines', name: '90 Günlük Net', line: { color: '#10b981', width: 2.3 } },
+      { x: DATES_2026, y: Array.from(r365.slice(IDX_2026)), type: 'scatter', mode: 'lines', name: '365 Günlük Net', line: { color: '#fbbf24', width: 2.6 } },
+    ], layoutBase({ yaxis: { title: '2026 Hareketli Net (' + uLbl.trim() + ')' } }), PLOT_CFG);
+  }
+
+  // Satır 5 & 6: (13) Günlük Kâr-Zarar ve (14) Haftalık Kâr-Zarar Grafikleri
+  function drawDailyAndWeeklyRows(sd) {
+    var m = unitMult();
     var uLbl = unitSuffix();
 
-    if (S.durMode === 'pnl') {
-      renderDivergingBarChart('cDuration', DUR_LABELS, vd.dur, 'Kalma Süresine Göre Kâr / Zarar');
-    } else {
-      var counts = vd.dur.map(function (r) { return r.n; });
-      var wrs = vd.dur.map(function (r) { return r.n ? Math.round((r.w / r.n) * 1000) / 10 : 0; });
-      Plotly.react('cDuration', [
+    function plotDaily(domId, sideObj, gap) {
+      var n = sideObj.dayPos.length;
+      var pArr = new Array(n), nArr = new Array(n);
+      for (var i = 0; i < n; i++) {
+        pArr[i] = Math.round(sideObj.dayPos[i] * m * 100) / 100;
+        nArr[i] = -Math.round(sideObj.dayNeg[i] * m * 100) / 100;
+      }
+      Plotly.react(domId, [
+        { x: sideObj.dates, y: pArr, type: 'bar', name: 'Günlük Kâr (+' + uLbl.trim() + ')', marker: { color: '#10b981' } },
+        { x: sideObj.dates, y: nArr, type: 'bar', name: 'Günlük Zarar (-' + uLbl.trim() + ')', marker: { color: '#f43f5e' } },
+      ], layoutBase({
+        barmode: 'relative',
+        bargap: gap,
+        yaxis: { title: 'Günlük Kâr/Zarar (' + uLbl.trim() + ')' },
+      }), PLOT_CFG);
+    }
+
+    plotDaily('cDay_all', sd.all, 0);
+    plotDaily('cDay_26', sd.y26, 0.08);
+
+    function plotWeekly(domId, sideObj) {
+      var wMap = new Map();
+      for (var i = 0; i < sideObj.dayPos.length; i++) {
+        var wk = sideObj.weeks[i];
+        var rec = wMap.get(wk);
+        if (!rec) { rec = { p: 0, ng: 0 }; wMap.set(wk, rec); }
+        rec.p += sideObj.dayPos[i];
+        rec.ng += sideObj.dayNeg[i];
+      }
+      var wKeys = Array.from(wMap.keys());
+      var wPos = wKeys.map(function (k) { return Math.round(wMap.get(k).p * m * 10) / 10; });
+      var wNeg = wKeys.map(function (k) { return -Math.round(wMap.get(k).ng * m * 10) / 10; });
+      var wNet = wKeys.map(function (k) { var r = wMap.get(k); return Math.round((r.p - r.ng) * m * 10) / 10; });
+
+      Plotly.react(domId, [
+        { x: wKeys, y: wPos, type: 'bar', name: 'Haftalık Kâr (+' + uLbl.trim() + ')', marker: { color: '#10b981' } },
+        { x: wKeys, y: wNeg, type: 'bar', name: 'Haftalık Zarar (-' + uLbl.trim() + ')', marker: { color: '#f43f5e' } },
+        { x: wKeys, y: wNet, type: 'scatter', mode: 'lines', name: 'Haftalık Net', line: { color: '#fbbf24', width: 1.8 } },
+      ], layoutBase({
+        barmode: 'relative',
+        yaxis: { title: 'Haftalık Kâr/Zarar (' + uLbl.trim() + ')' },
+      }), PLOT_CFG);
+    }
+
+    plotWeekly('cWeek_all', sd.all);
+    plotWeekly('cWeek_26', sd.y26);
+  }
+
+  // Satır 7, 8, 9, 10: (15) Aylık, (16) Mevsimlik, Haftanın Günü ve Ay×Yıl Heatmap
+  function drawCalendarRows(sd) {
+    // 15. Aylık Kâr-Zarar
+    var mLabsAll = sd.timelineMonthsAll.map(function (x) { return x.label; });
+    plotDivergingBars('cMonth_all', mLabsAll, sd.timelineMonthsAll, 'Aylık Kâr / Zarar');
+
+    var mLabs26 = sd.timelineMonths26.map(function (x) { return x.label; });
+    plotDivergingBars('cMonth_26', mLabs26, sd.timelineMonths26, '2026 Aylık Kâr / Zarar');
+
+    // 16. Mevsimlik Kâr-Zarar
+    plotDivergingBars('cSeason_all', SEASON_LABELS, sd.all.season, 'Mevsimlik Kâr / Zarar');
+    plotDivergingBars('cSeason_26', SEASON_LABELS, sd.y26.season, '2026 Mevsimlik Kâr / Zarar');
+
+    // Haftanın Gününe Göre Net Performans (Pzt..Paz)
+    var dowAll = [1, 2, 3, 4, 5, 6, 0].map(function (idx) { return sd.all.dow[idx]; });
+    var dow26 = [1, 2, 3, 4, 5, 6, 0].map(function (idx) { return sd.y26.dow[idx]; });
+    plotDivergingBars('cDow_all', DOW_LABELS, dowAll, 'Haftanın Günü Kâr/Zarar');
+    plotDivergingBars('cDow_26', DOW_LABELS, dow26, '2026 Haftanın Günü Kâr/Zarar');
+
+    // Ay × Yıl Net Getiri Heatmap'i (Sol: 2022–2026 | Sağ: 2026 Aylık Detay Heatmap)
+    var m = unitMult();
+    var uLbl = unitSuffix();
+    var yYears = ['2022', '2023', '2024', '2025', '2026'];
+    var zAll = [], tAll = [];
+    for (var yi = 0; yi < 5; yi++) {
+      var zr = [], tr = [];
+      for (var mi = 0; mi < 12; mi++) {
+        if ((yi === 0 && mi < 7) || (yi === 4 && mi > 8)) {
+          zr.push(null); tr.push('');
+        } else {
+          var v = Math.round(sd.monthMatrix[yi][mi].net * m * 10) / 10;
+          zr.push(v);
+          tr.push((v >= 0 ? '+' : '') + nf(v, 0));
+        }
+      }
+      zAll.push(zr); tAll.push(tr);
+    }
+
+    var hmColor = [
+      [0, '#be123c'],
+      [0.38, '#881337'],
+      [0.5, '#1e293b'],
+      [0.62, '#065f46'],
+      [1, '#10b981'],
+    ];
+
+    Plotly.react('cCal_all', [{
+      x: MONTH_LABELS,
+      y: yYears,
+      z: zAll,
+      text: tAll,
+      texttemplate: '%{text}',
+      textfont: { family: "'JetBrains Mono', monospace", size: 11 },
+      type: 'heatmap',
+      colorscale: hmColor,
+      zmid: 0,
+    }], layoutBase({
+      xaxis: { type: 'category' },
+      yaxis: { type: 'category' },
+      hovermode: 'closest',
+    }), PLOT_CFG);
+
+    // Sağ: 2026 Aylarında Brüt Kâr, Brüt Zarar ve Net Sonuç Matrisi
+    var m26Names = MONTH_LABELS.slice(0, 9);
+    var z26 = [
+      m26Names.map(function (_, mi) { return Math.round(sd.monthMatrix[4][mi].pos * m * 10) / 10; }),
+      m26Names.map(function (_, mi) { return -Math.round(sd.monthMatrix[4][mi].neg * m * 10) / 10; }),
+      m26Names.map(function (_, mi) { return Math.round(sd.monthMatrix[4][mi].net * m * 10) / 10; }),
+    ];
+    var t26 = z26.map(function (row) {
+      return row.map(function (v) { return (v >= 0 ? '+' : '') + nf(v, 0); });
+    });
+
+    Plotly.react('cCal_26', [{
+      x: m26Names,
+      y: ['2026 Brüt Kâr', '2026 Brüt Zarar', '2026 Net Sonuç'],
+      z: z26,
+      text: t26,
+      texttemplate: '%{text}',
+      textfont: { family: "'JetBrains Mono', monospace", size: 11.5 },
+      type: 'heatmap',
+      colorscale: hmColor,
+      zmid: 0,
+    }], layoutBase({
+      xaxis: { type: 'category' },
+      yaxis: { type: 'category' },
+      hovermode: 'closest',
+    }), PLOT_CFG);
+  }
+
+  // Satır 11 & 12: (17) İşlem Süresi Histogramı ve (18) İşlem Süresine Göre Kâr-Zarar
+  function drawDurationRows(sd) {
+    function plotDurCount(domId, durRows) {
+      var counts = durRows.map(function (r) { return r.n; });
+      var wrs = durRows.map(function (r) { return r.n ? Math.round((r.w / r.n) * 1000) / 10 : 0; });
+      Plotly.react(domId, [
         {
           x: DUR_LABELS,
           y: counts,
           type: 'bar',
-          name: 'İşlem Sayısı (Adet)',
-          marker: { color: '#3b82f6' },
-          text: counts.map(function (c) { return nf(c) + ' işlem'; }),
+          name: 'İşlem Sayısı',
+          marker: { color: '#38bdf8' },
+          text: counts.map(function (c) { return nf(c); }),
           textposition: 'outside',
           cliponaxis: false,
         },
@@ -1037,246 +978,211 @@
           type: 'scatter',
           mode: 'lines+markers',
           name: 'Kazanma Oranı (%)',
-          line: { color: '#10b981', width: 2.6 },
-          marker: { size: 8, color: '#10b981' },
+          line: { color: '#10b981', width: 2.3 },
+          marker: { size: 7, color: '#10b981' },
         },
-      ], baseLayout({
-        yaxis: { title: 'İşlem Sayısı' },
+      ], layoutBase({
+        xaxis: { type: 'category' },
+        yaxis: { title: 'İşlem Sayısı (Adet)' },
         yaxis2: {
-          title: 'Kazanma Oranı (%)',
+          title: 'WR (%)',
           overlaying: 'y',
           side: 'right',
           range: [0, 100],
           showgrid: false,
           tickfont: { color: '#10b981' },
         },
-      }), PLOT_CONFIG);
+      }), PLOT_CFG);
     }
 
-    // 5B: İşlem Başına Getiri Dağılımı (Kuyruk & Asimetri Histogramı)
-    var rCounts = vd.ret.map(function (r) { return r.n; });
-    var rDollar = vd.ret.map(function (r) { return Math.round((r.pos - r.neg) * mult * 10) / 10; });
-    var barColors = RET_LABELS.map(function (_, idx) { return idx < 6 ? '#f43f5e' : '#10b981'; });
+    plotDurCount('cDurCnt_all', sd.all.dur);
+    plotDurCount('cDurCnt_26', sd.y26.dur);
 
-    Plotly.react('cRetDist', [
-      {
-        x: RET_LABELS,
-        y: rCounts,
-        type: 'bar',
-        name: 'İşlem Adedi',
-        marker: { color: barColors, opacity: 0.78 },
-      },
-      {
-        x: RET_LABELS,
-        y: rDollar,
-        yaxis: 'y2',
-        type: 'scatter',
-        mode: 'lines+markers',
-        name: 'Net Kasa Katkısı (' + uLbl.trim() + ')',
-        line: { color: '#fbbf24', width: 2.5 },
-        marker: { size: 7, color: '#fbbf24' },
-      },
-    ], baseLayout({
-      yaxis: { title: 'İşlem Adedi' },
-      yaxis2: {
-        title: 'Net Katkı (' + uLbl.trim() + ')',
-        overlaying: 'y',
-        side: 'right',
-        showgrid: false,
-        tickfont: { color: '#fbbf24' },
-      },
-    }), PLOT_CONFIG);
+    plotDivergingBars('cDurPnl_all', DUR_LABELS, sd.all.dur, 'Süreye Göre Kâr / Zarar');
+    plotDivergingBars('cDurPnl_26', DUR_LABELS, sd.y26.dur, '2026 Süreye Göre Kâr / Zarar');
   }
 
-  // 6A, 6B, 6C, 6D: Ekstra Profesyonel Analiz Grafikleri (Heatmap, Underwater Drawdown, Gün/Saat, Coin/Yön)
-  function drawExtraProCharts(vd) {
-    var mult = unitMult();
-    var uLbl = unitSuffix();
+  // Satır 13, 14, 15: Long–Short Karşılaştırması ve Çıkış Nedenleri (SL / TP / Flip / MaxBars)
+  function drawLsAndExitRows(sd) {
+    plotDivergingBars('cLs_all', ['Long İşlemler', 'Short İşlemler'], sd.all.ls, 'Long vs Short Kâr / Zarar');
+    plotDivergingBars('cLs_26', ['Long İşlemler', 'Short İşlemler'], sd.y26.ls, '2026 Long vs Short Kâr / Zarar');
 
-    // 6A: Yıl × Ay Kâr / Zarar Isı Haritası (Heatmap)
-    var yYears = ['2022', '2023', '2024', '2025', '2026'];
-    var zVals = [];
-    var textVals = [];
-    for (var yi = 0; yi < 5; yi++) {
-      var zRow = [], tRow = [];
-      for (var mi = 0; mi < 12; mi++) {
-        if ((yi === 0 && mi < 7) || (yi === 4 && mi > 8)) {
-          zRow.push(null);
-          tRow.push('');
-        } else {
-          var cell = vd.monthMatrix[yi][mi];
-          var val = Math.round(cell.net * mult * 10) / 10;
-          zRow.push(val);
-          tRow.push((val >= 0 ? '+' : '') + nf(val, 0));
-        }
-      }
-      zVals.push(zRow);
-      textVals.push(tRow);
+    function plotExitCounts(domId, exitRows) {
+      var counts = exitRows.map(function (r) { return r.n; });
+      var wrs = exitRows.map(function (r) { return r.n ? Math.round((r.w / r.n) * 1000) / 10 : 0; });
+      Plotly.react(domId, [
+        {
+          x: EXIT_LABELS,
+          y: counts,
+          type: 'bar',
+          name: 'Çıkış Adedi',
+          marker: { color: ['#f43f5e', '#10b981', '#38bdf8', '#a855f7'] },
+          text: counts.map(function (c, idx) { return nf(c) + ' (WR %' + wrs[idx] + ')'; }),
+          textposition: 'outside',
+          cliponaxis: false,
+        },
+      ], layoutBase({
+        xaxis: { type: 'category' },
+        yaxis: { title: 'İşlem Sayısı' },
+      }), PLOT_CFG);
     }
 
-    Plotly.react('cHeatmapMonth', [
-      {
-        x: MONTH_LABELS,
-        y: yYears,
-        z: zVals,
-        text: textVals,
+    plotExitCounts('cExitCnt_all', sd.all.exit);
+    plotExitCounts('cExitCnt_26', sd.y26.exit);
+
+    plotDivergingBars('cExitPnl_all', EXIT_LABELS, sd.all.exit, 'Çıkış Nedenine Göre Kâr/Zarar');
+    plotDivergingBars('cExitPnl_26', EXIT_LABELS, sd.y26.exit, '2026 Çıkış Nedenine Göre Kâr/Zarar');
+  }
+
+  // Satır 16: (19) Coin Bazında Kâr-Zarar Grafiği (Seçilen Metotta En Aktif 40 Coin)
+  function drawCoinRows(sd) {
+    var m = unitMult();
+    var uLbl = unitSuffix();
+
+    function plotTop40Coins(domId, coinsArr) {
+      var filtered = (coinsArr || []).filter(function (c) {
+        if (S.vol == null) return true;
+        var rk = VOL.rank && VOL.rank[c[0]];
+        return !rk || rk <= S.vol;
+      }).slice(0, 40);
+
+      // Net sonuca göre aşağıdan yukarıya sırala
+      filtered.sort(function (a, b) { return (a[3] - a[4]) - (b[3] - b[4]); });
+
+      var names = filtered.map(function (c) { return (SYMS[c[0]] || '').replace(/USDT$/, '') + ' (' + c[1] + ')'; });
+      var cPos = filtered.map(function (c) { return Math.round((c[3] / 100) * m * 10) / 10; });
+      var cNeg = filtered.map(function (c) { return -Math.round((c[4] / 100) * m * 10) / 10; });
+      var cNet = filtered.map(function (c) { return Math.round(((c[3] - c[4]) / 100) * m * 10) / 10; });
+
+      Plotly.react(domId, [
+        { y: names, x: cPos, orientation: 'h', type: 'bar', name: 'Brüt Kâr (+' + uLbl.trim() + ')', marker: { color: '#10b981' } },
+        { y: names, x: cNeg, orientation: 'h', type: 'bar', name: 'Brüt Zarar (-' + uLbl.trim() + ')', marker: { color: '#f43f5e' } },
+        { y: names, x: cNet, orientation: 'h', type: 'scatter', mode: 'markers', name: 'Net Sonuç', marker: { color: '#fbbf24', size: 6.5, symbol: 'diamond' } },
+      ], layoutBase({
+        barmode: 'relative',
+        hovermode: 'y unified',
+        margin: { l: 105, r: 18, t: 24, b: 36 },
+        yaxis: { type: 'category', tickfont: { size: 9.5, color: '#cbd5e1' } },
+        xaxis: { title: 'En Aktif 40 Coin Kâr / Zarar (' + uLbl.trim() + ')' },
+      }), PLOT_CFG);
+    }
+
+    plotTop40Coins('cCoin_all', sd.all.coins);
+    plotTop40Coins('cCoin_26', sd.y26.coins);
+  }
+
+  // Satır 17: (20, 21, 22, 23) 66 Filtrenin Net Toplam Getiri Heatmap'i + WR% + Ort R + İşlem Sayısı
+  function drawFilterHeatmapRows(sd) {
+    var ck = sd.st.id + '|' + sd.st.tf;
+    var rowsF = CELL_FLT[ck] || [];
+    if (!rowsF.length || !FLT_CAT.length) return;
+
+    // [fn, fwr, favg, ftot, n26, wr26, avg26, tot26]
+    function plotFltHeatmap(domId, is2026) {
+      var yNames = [];
+      var zMatrix = [];
+      var textMatrix = [];
+      var customMatrix = [];
+
+      // Toplam net getiriye göre en iyi 56 filtreyi sırala
+      var indexed = FLT_CAT.map(function (f, idx) {
+        var r = rowsF[idx] || [0, 0, 0, 0, 0, 0, 0, 0];
+        return {
+          title: f.title,
+          k: f.k,
+          n: is2026 ? r[4] : r[0],
+          wr: is2026 ? r[5] : r[1],
+          avg: is2026 ? r[6] : r[2],
+          tot: is2026 ? r[7] : r[3],
+        };
+      }).filter(function (x) { return x.n > 0; });
+
+      indexed.sort(function (a, b) { return a.tot - b.tot; });
+      if (indexed.length > 56) indexed = indexed.slice(-56);
+
+      // Normalize her sütunu [-1, 1] aralığına renk için, gerçek değerleri metin olarak yaz
+      var maxTot = Math.max.apply(null, indexed.map(function (x) { return Math.abs(x.tot); }).concat([1]));
+      var maxAvg = Math.max.apply(null, indexed.map(function (x) { return Math.abs(x.avg); }).concat([1]));
+      var maxN = Math.max.apply(null, indexed.map(function (x) { return x.n; }).concat([1]));
+
+      indexed.forEach(function (it) {
+        yNames.push(it.title);
+        zMatrix.push([
+          it.tot / maxTot,
+          (it.wr - 50) / 50,
+          it.avg / maxAvg,
+          (it.n / maxN) * 0.6,
+        ]);
+        textMatrix.push([
+          (it.tot >= 0 ? '+$' : '-$') + nf(Math.abs(it.tot), 0),
+          '%' + it.wr.toFixed(1),
+          (it.avg >= 0 ? '+' : '') + it.avg.toFixed(2) + '%',
+          nf(it.n) + ' işl.',
+        ]);
+        customMatrix.push(it);
+      });
+
+      var xCols = ['20. Toplam Net ($10)', '21. Kazanma Oranı (WR%)', '22. Ortalama R (%)', '23. İşlem Sayısı'];
+
+      Plotly.react(domId, [{
+        x: xCols,
+        y: yNames,
+        z: zMatrix,
+        text: textMatrix,
         texttemplate: '%{text}',
-        textfont: { family: "'JetBrains Mono', monospace", size: 11.5 },
+        textfont: { family: "'JetBrains Mono', monospace", size: 10 },
         type: 'heatmap',
         colorscale: [
           [0, '#be123c'],
-          [0.35, '#881337'],
-          [0.5, '#1e293b'],
-          [0.65, '#065f46'],
+          [0.42, '#4c0519'],
+          [0.5, '#17253b'],
+          [0.58, '#064e3b'],
           [1, '#10b981'],
         ],
-        zmid: 0,
-        colorbar: { title: uLbl.trim(), thickness: 12 },
-      },
-    ], baseLayout({
-      margin: { l: 58, r: 20, t: 20, b: 40 },
-      xaxis: { type: 'category' },
-      yaxis: { type: 'category' },
-      hovermode: 'closest',
-    }), PLOT_CONFIG);
-
-    // 6B: Sualtı Düşüş (Underwater Drawdown $) & 90 Günlük Yuvarlanan Günlük Kâr Beklentisi
-    var ddSeries = new Float64Array(GRID.len);
-    var roll90 = new Float64Array(GRID.len);
-    var cum = 0, peak = 0, winSum = 0;
-    var netDay = new Float64Array(GRID.len);
-    for (var d = 0; d < GRID.len; d++) {
-      var nd = (vd.dayPos[d] - vd.dayNeg[d]) * mult;
-      netDay[d] = nd;
-      cum += nd;
-      if (cum > peak) peak = cum;
-      ddSeries[d] = Math.round((cum - peak) * 100) / 100;
-      winSum += nd;
-      if (d >= 90) winSum -= netDay[d - 90];
-      roll90[d] = Math.round((winSum / Math.min(d + 1, 90)) * 30 * 10) / 10; // 30 günlük ort. tempo
+        zmin: -1,
+        zmax: 1,
+        showscale: false,
+      }], layoutBase({
+        margin: { l: 175, r: 16, t: 28, b: 30 },
+        xaxis: { type: 'category', side: 'top' },
+        yaxis: { type: 'category', tickfont: { size: 10, color: '#dbe6f7' } },
+        hovermode: 'closest',
+      }), PLOT_CFG);
     }
 
-    Plotly.react('cUnderwater', [
-      {
-        x: DATE_STRS,
-        y: Array.from(ddSeries),
-        type: 'scatter',
-        mode: 'lines',
-        name: 'Zirveden Düşüş (Drawdown ' + uLbl.trim() + ')',
-        fill: 'tozeroy',
-        fillcolor: 'rgba(244,63,94,0.22)',
-        line: { color: '#f43f5e', width: 2 },
-      },
-      {
-        x: DATE_STRS,
-        y: Array.from(roll90),
-        yaxis: 'y2',
-        type: 'scatter',
-        mode: 'lines',
-        name: '90G Hareketli Aylık Tempo (' + uLbl.trim() + '/ay)',
-        line: { color: '#38bdf8', width: 2 },
-      },
-    ], baseLayout({
-      yaxis: { title: 'Zirveden Düşüş (' + uLbl.trim() + ')' },
-      yaxis2: {
-        title: 'Aylık Tempo (' + uLbl.trim() + ')',
-        overlaying: 'y',
-        side: 'right',
-        showgrid: false,
-        tickfont: { color: '#38bdf8' },
-      },
-    }), PLOT_CONFIG);
-
-    // 6C: Haftanın Günleri veya Giriş Saatleri
-    if (S.dowMode === 'dow') {
-      var dowOrder = [1, 2, 3, 4, 5, 6, 0].map(function (idx) { return vd.dow[idx]; });
-      renderDivergingBarChart('cDowHour', DOW_LABELS, dowOrder, 'Günlere Göre Kâr / Zarar');
-    } else {
-      renderDivergingBarChart('cDowHour', HOUR_LABELS, vd.hour, 'Saat Dilimine Göre Kâr / Zarar');
-    }
-
-    // 6D: Coin Bazlı Kâr (Sağa Yeşil) / Zarar (Sola Kırmızı) + Long/Short Özeti
-    var coinsRaw = (vd.st.agg.coins || []).filter(function (c) {
-      if (S.vol == null) return true;
-      var rk = VOL.rank && VOL.rank[c[0]];
-      return !rk || rk <= S.vol;
-    });
-    var topCoins = coinsRaw.slice(0, 12).concat(coinsRaw.slice(-8));
-    var seenC = new Set();
-    topCoins = topCoins.filter(function (c) {
-      if (seenC.has(c[0])) return false;
-      seenC.add(c[0]);
-      return true;
-    });
-    topCoins.sort(function (a, b) { return (a[3] - a[4]) - (b[3] - b[4]); });
-
-    var cNames = topCoins.map(function (c) { return (SYMS[c[0]] || '').replace(/USDT$/, ''); });
-    var cPos = topCoins.map(function (c) { return Math.round((c[3] / 100) * mult * 10) / 10; });
-    var cNeg = topCoins.map(function (c) { return -Math.round((c[4] / 100) * mult * 10) / 10; });
-    var cNet = topCoins.map(function (c) { return Math.round(((c[3] - c[4]) / 100) * mult * 10) / 10; });
-
-    Plotly.react('cCoin', [
-      {
-        y: cNames,
-        x: cPos,
-        orientation: 'h',
-        type: 'bar',
-        name: 'Coin Brüt Kâr (+' + uLbl.trim() + ')',
-        marker: { color: '#10b981' },
-      },
-      {
-        y: cNames,
-        x: cNeg,
-        orientation: 'h',
-        type: 'bar',
-        name: 'Coin Brüt Zarar (-' + uLbl.trim() + ')',
-        marker: { color: '#f43f5e' },
-      },
-      {
-        y: cNames,
-        x: cNet,
-        orientation: 'h',
-        type: 'scatter',
-        mode: 'markers',
-        name: 'Net Katkı (' + uLbl.trim() + ')',
-        marker: { color: '#fbbf24', size: 8, symbol: 'diamond' },
-      },
-    ], baseLayout({
-      barmode: 'relative',
-      hovermode: 'y unified',
-      margin: { l: 86, r: 24, t: 28, b: 40 },
-      xaxis: { title: 'Kâr / Zarar (' + uLbl.trim() + ')' },
-    }), PLOT_CONFIG);
+    plotFltHeatmap('cFltHeat_all', false);
+    plotFltHeatmap('cFltHeat_26', true);
   }
 
   function renderAll() {
     ensureSelection();
     renderSidebar();
-    renderHeaderAndSwitchBox();
-    renderKpis();
-
     var st = byKey.get(S.stateKey);
     if (!st) return;
-    var vd = getStateViewData(st);
+    var sd = getSplitData(st);
 
-    drawFilterImpactCharts();
-    drawCashLineCharts(vd);
-    drawDailyHistograms(vd);
-    drawPeriodCharts(vd);
-    drawDurationAndReturnCharts(vd);
-    drawExtraProCharts(vd);
+    renderHeaderAndSwitchBox(sd);
+    renderSplitKpis(sd);
+
+    drawEquityAndDrawdownPair('cEq_all', 'cDd_all', sd.all, '#10b981');
+    drawEquityAndDrawdownPair('cEq_26', 'cDd_26', sd.y26, '#fbbf24');
+    drawFilterCompareRow(sd);
+    drawRollingRow(sd);
+    drawDailyAndWeeklyRows(sd);
+    drawCalendarRows(sd);
+    drawDurationRows(sd);
+    drawLsAndExitRows(sd);
+    drawCoinRows(sd);
+    drawFilterHeatmapRows(sd);
   }
 
-  /* ------------------------------ EVENT LISTENERS ------------------------------ */
   function initEvents() {
     el('prevStrat').addEventListener('click', function () {
       var strats = getFilteredStrategies();
       if (!strats.length) return;
       var idx = strats.findIndex(function (x) { return x.id === S.stratId; });
-      var nextIdx = (idx - 1 + strats.length) % strats.length;
-      S.stratId = strats[nextIdx].id;
-      S.stratTf = null;
-      S.stateKey = null;
+      S.stratId = strats[(idx - 1 + strats.length) % strats.length].id;
+      S.stratTf = null; S.stateKey = null;
       renderAll();
     });
 
@@ -1284,10 +1190,8 @@
       var strats = getFilteredStrategies();
       if (!strats.length) return;
       var idx = strats.findIndex(function (x) { return x.id === S.stratId; });
-      var nextIdx = (idx + 1) % strats.length;
-      S.stratId = strats[nextIdx].id;
-      S.stratTf = null;
-      S.stateKey = null;
+      S.stratId = strats[(idx + 1) % strats.length].id;
+      S.stratTf = null; S.stateKey = null;
       renderAll();
     });
 
@@ -1299,33 +1203,6 @@
     el('sortSel').addEventListener('change', function (e) {
       S.sort = e.target.value;
       renderAll();
-    });
-
-    el('qtrToggle').addEventListener('click', function (e) {
-      var b = e.target.closest('button[data-qtr]');
-      if (!b) return;
-      S.qtrMode = b.getAttribute('data-qtr');
-      el('qtrToggle').querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); });
-      var st = byKey.get(S.stateKey);
-      if (st) drawPeriodCharts(getStateViewData(st));
-    });
-
-    el('durToggle').addEventListener('click', function (e) {
-      var b = e.target.closest('button[data-dur]');
-      if (!b) return;
-      S.durMode = b.getAttribute('data-dur');
-      el('durToggle').querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); });
-      var st = byKey.get(S.stateKey);
-      if (st) drawDurationAndReturnCharts(getStateViewData(st));
-    });
-
-    el('dowToggle').addEventListener('click', function (e) {
-      var b = e.target.closest('button[data-dow]');
-      if (!b) return;
-      S.dowMode = b.getAttribute('data-dow');
-      el('dowToggle').querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); });
-      var st = byKey.get(S.stateKey);
-      if (st) drawExtraProCharts(getStateViewData(st));
     });
   }
 

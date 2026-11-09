@@ -33,22 +33,23 @@ for (let g = 0; g < GD; g++) {
   DAY_DOW[g] = d.getUTCDay();
 }
 
-// Kalma süresi dilimleri (saat cinsinden):
-// 0: <1g (<24s), 1: 1-3g (24-72s), 2: 3-7g (72-168s), 3: 7-14g (168-336s),
-// 4: 14-35g (336-840s), 5: 35-65g (840-1560s), 6: 65+g (>=1560s)
-const DUR_EDGES = [0, 24, 72, 168, 336, 840, 1560, Infinity];
-const NDUR = 7;
+// Kalma süresi dilimleri (saat cinsinden, 8 kova):
+// 0: <1 saat (<1s), 1: 1–3 saat (1-3s), 2: 3–9 saat (3-9s), 3: 9–24 saat (9-24s),
+// 4: 1–3 gün (24-72s), 5: 3–7 gün (72-168s), 6: 1–4 hafta (168-672s), 7: >4 hafta (>=672s)
+const DUR_EDGES = [0, 1, 3, 9, 24, 72, 168, 672, Infinity];
+const NDUR = 8;
 const RET_EDGES = [-1, -0.2, -0.1, -0.05, -0.02, -0.01, 0, 0.01, 0.02, 0.05, 0.1, 0.2, Infinity];
 const NRET = 12;
 
 function durBinOf(h) {
-  if (h < 24) return 0;
-  if (h < 72) return 1;
-  if (h < 168) return 2;
-  if (h < 336) return 3;
-  if (h < 840) return 4;
-  if (h < 1560) return 5;
-  return 6;
+  if (h < 1) return 0;
+  if (h < 3) return 1;
+  if (h < 9) return 2;
+  if (h < 24) return 3;
+  if (h < 72) return 4;
+  if (h < 168) return 5;
+  if (h < 672) return 6;
+  return 7;
 }
 function retBinOf(r) {
   if (r < -0.2) return 0;
@@ -76,6 +77,7 @@ function newYear(withCoin) {
     season: new Float64Array(4 * 7),
     hour: new Float64Array(8 * 7),
     dur: new Float64Array(NDUR * 7),
+    exit: new Float64Array(4 * 7),   // 0:SL, 1:TP/Exit, 2:Flip, 3:MaxBars/End
     ret: new Float64Array(NRET * 3), // [n, sumPos, sumNeg]
     ls: new Float64Array(2 * 5),     // [n, w, sumR, sumPos, sumNeg] × (0:Long, 1:Short)
   };
@@ -149,7 +151,7 @@ class ProTracker {
     this.ci = ci;
     this.tfMs = tfMs;
   }
-  onTrade(r, bars, xt, side) {
+  onTrade(r, bars, xt, side, reason = 2) {
     let gd = ((xt - DGRID_START) / 86400000) | 0;
     if (gd < 0) gd = 0;
     else if (gd >= GD) gd = GD - 1;
@@ -167,6 +169,7 @@ class ProTracker {
     const durH = (bars * this.tfMs) / 3600000;
     const dBin = durBinOf(durH);
     const rBin = retBinOf(r);
+    const exBin = (reason >= 0 && reason <= 3) ? reason : 2;
     const lr = Math.log1p(r);
     const win = r > 0 ? 1 : 0;
     const pos = r > 0 ? r : 0;
@@ -187,6 +190,7 @@ class ProTracker {
     addB7(Y.season, sea, r, lr, durH, pos, neg);
     addB7(Y.hour, hourBin, r, lr, durH, pos, neg);
     addB7(Y.dur, dBin, r, lr, durH, pos, neg);
+    addB7(Y.exit, exBin, r, lr, durH, pos, neg);
 
     const ro = rBin * 3;
     Y.ret[ro]++; Y.ret[ro + 1] += pos; Y.ret[ro + 2] += neg;
@@ -280,6 +284,7 @@ function serYear(Y) {
     season: Array.from(Y.season),
     hour: Array.from(Y.hour),
     dur: Array.from(Y.dur),
+    exit: Array.from(Y.exit),
     ret: Array.from(Y.ret),
     ls: Array.from(Y.ls),
   };
