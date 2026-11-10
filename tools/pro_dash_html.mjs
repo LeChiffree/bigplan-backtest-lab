@@ -46,11 +46,11 @@ ${css}
 </style>
 </head>
 <body>
-<div class="app">
 
   <!-- SOL KONTROL PANELİ (1. Metot Seçici & 2. Zaman Dilimi Seçici) -->
   <aside class="side">
     <div class="brand">
+      <div class="eyebrow">Backtest laboratuvarı</div>
       <div class="brand-left">
         <div class="logo">FL</div>
         <div>
@@ -93,9 +93,10 @@ ${css}
       </div>
       <div class="stepper-bar">
         <button class="btn-step" id="prevStrat">◀ Önceki</button>
-        <span style="font-size:10.5px;color:var(--dim)">Tek Tek İlerlet</span>
+        <span style="font-size:10.5px;color:var(--muted)">Tek Tek İlerlet</span>
         <button class="btn-step" id="nextStrat">Sonraki ▶</button>
       </div>
+      <div class="sub-label" id="scenarioCount" style="margin:0 0 7px"></div>
       <div class="search-row">
         <input class="input" type="search" id="qInput" placeholder="Metot veya filtre ara...">
         <select class="select" id="sortSel">
@@ -125,6 +126,10 @@ ${css}
   <!-- SAĞ ANA EKRAN: SOLDA TÜM YILLAR | SAĞDA SADECE 2026 -->
   <main class="main">
 
+    <div class="eyebrow">2022–2026 · Binance USD-M Futures · 5m çıkış çözümlemesi</div>
+    <h1>Filtre Laboratuvarı PRO</h1>
+    <p class="sub">42 metot · 520 USDT perpetual sembol · 224 doğrulanmış senaryo · işlem başı 10 USDT · azami 1× kaldıraç · ücret, kayma ve tarihsel funding dahil</p>
+
     <!-- ÜST STRATEJİ ÖZETİ + SAĞ SWITCH BOX -->
     <div class="hero-grid">
       <div class="strat-hero">
@@ -138,8 +143,8 @@ ${css}
 
       <div class="switch-box-card">
         <div class="switch-box-head">
-          <h3>🎛️ Uygulanacak Filtre Switch Box</h3>
-          <span style="font-size:11px;color:var(--tx-sec)">Aç/Kapat ile Anlık Karşılaştırma</span>
+          <h3>Uygulanacak Filtre Switch Box</h3>
+          <span style="font-size:11px;color:var(--muted)">Aç/Kapat ile anlık karşılaştırma</span>
         </div>
         <div class="switch-list" id="switchList"></div>
         <div class="preset-row" id="presetRow"></div>
@@ -150,12 +155,12 @@ ${css}
     <!-- İKİYE BÖLÜNMÜŞ YAPIŞKAN SÜTUN BAŞLIKLARI (3. Tüm Yıllar Paneli | 4. 2026 Paneli) -->
     <div class="split-sticky-headers">
       <div class="col-banner left-all">
-        <span>📊 3. TÜM YILLAR PANELİ (2022–2026 Bütün Dönem)</span>
-        <span class="sub">Sol Sütun · 1× Kaldıraçsız</span>
+        <span>3. TÜM YILLAR PANELİ (2022–2026)</span>
+        <span class="sub">Sol sütun · 1× kaldıraçsız</span>
       </div>
       <div class="col-banner right-2026">
-        <span>🎯 4. 2026 PANELİ (Yalnızca 2026 Sonuçları)</span>
-        <span class="sub">Sağ Sütun · 1× Kaldıraçsız</span>
+        <span>4. 2026 PANELİ (Yalnızca 2026)</span>
+        <span class="sub">Sağ sütun · 1× kaldıraçsız</span>
       </div>
     </div>
 
@@ -361,7 +366,6 @@ ${css}
     </footer>
 
   </main>
-</div>
 
 <script src="/plotly.min.js"></script>
 <script src="/pro_data.js"></script>

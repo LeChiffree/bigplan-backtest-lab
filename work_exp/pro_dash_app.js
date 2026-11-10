@@ -367,7 +367,8 @@
 
     var strats = getFilteredStrategies();
     var idx = strats.findIndex(function (x) { return x.id === S.stratId; });
-    el('stepPos').textContent = (idx + 1) + ' / ' + strats.length + ' (' + allCands.length + ' senaryo)';
+    el('stepPos').textContent = (idx + 1) + ' / ' + strats.length;
+    el('scenarioCount').textContent = allCands.length + ' doğrulanmış senaryo · sol tüm yıllar, sağ 2026';
 
     var sHost = el('stratList');
     sHost.innerHTML = strats.map(function (g, i) {
@@ -417,7 +418,7 @@
       var sd = getSplitData(st);
       var lbl = st.kind === 'temel' ? 'Filtresiz (Temel)' : st.kind.replace('varyant', 'Senaryo ') + (st.in93 ? ' ★' : '');
       return '<div class="var-item' + (st.key === S.stateKey ? ' on' : '') + '" data-key="' + esc(st.key) + '">' +
-        '<div class="var-r1"><span>' + esc(lbl) + '</span><span style="color:var(--pos-bright);font-family:var(--font-mono)">' + fmtUnitVal(sd.all.net, 0) + '</span></div>' +
+        '<div class="var-r1"><span>' + esc(lbl) + '</span><span style="color:var(--green);font-family:monospace">' + fmtUnitVal(sd.all.net, 0) + '</span></div>' +
         '<div class="var-r2">' + esc(st.ad) + ' · 2026: ' + fmtUnitVal(sd.y26.net, 0) + '</div>' +
       '</div>';
     }).join('');
@@ -470,7 +471,7 @@
         var isOn = activeSet.has(f.k);
         return '<div class="sw-row' + (isOn ? ' on' : '') + '" data-fk="' + esc(f.k) + '">' +
           '<div class="sw-info">' +
-            '<div class="sw-title">' + esc(f.title) + ' <span style="color:var(--dim);font-family:var(--font-mono);font-size:10.5px">[' + esc(f.k) + ']</span></div>' +
+            '<div class="sw-title">' + esc(f.title) + ' <span style="color:var(--muted);font-family:monospace;font-size:10.5px">[' + esc(f.k) + ']</span></div>' +
             '<div class="sw-desc">' + esc(f.desc) + '</div>' +
           '</div>' +
           '<div class="sw-toggle" role="switch" aria-checked="' + isOn + '"></div>' +
@@ -509,10 +510,10 @@
     var keepRatio = baseSd.all.n ? (sd.all.n / baseSd.all.n) * 100 : 100;
 
     el('deltaStrip').innerHTML =
-      '<div class="delta-item"><div class="dl">Tüm Yıllar Net Δ</div><div class="dv" style="color:' + (diffAll >= 0 ? 'var(--pos-bright)' : 'var(--neg-bright)') + '">' + fmtUnitVal(diffAll, 0) + '</div></div>' +
-      '<div class="delta-item"><div class="dl">2026 Net Δ</div><div class="dv" style="color:' + (diff26 >= 0 ? 'var(--pos-bright)' : 'var(--neg-bright)') + '">' + fmtUnitVal(diff26, 0) + '</div></div>' +
-      '<div class="delta-item"><div class="dl">Ort. Net R Δ</div><div class="dv" style="color:' + (diffAvg >= 0 ? 'var(--pos-bright)' : 'var(--neg-bright)') + '">' + (diffAvg >= 0 ? '+' : '') + diffAvg.toFixed(2) + '%</div></div>' +
-      '<div class="delta-item"><div class="dl">Korunan İşlem</div><div class="dv" style="color:var(--acc)">%' + keepRatio.toFixed(1) + ' (' + nf(sd.all.n) + ')</div></div>';
+      '<div class="delta-item"><div class="dl">Tüm Yıllar Δ</div><div class="dv" style="color:' + (diffAll >= 0 ? 'var(--green)' : 'var(--red)') + '">' + fmtUnitVal(diffAll, 0) + '</div></div>' +
+      '<div class="delta-item"><div class="dl">2026 Δ</div><div class="dv" style="color:' + (diff26 >= 0 ? 'var(--green)' : 'var(--red)') + '">' + fmtUnitVal(diff26, 0) + '</div></div>' +
+      '<div class="delta-item"><div class="dl">Ort. R Δ</div><div class="dv" style="color:' + (diffAvg >= 0 ? 'var(--green)' : 'var(--red)') + '">' + (diffAvg >= 0 ? '+' : '') + diffAvg.toFixed(2) + '%</div></div>' +
+      '<div class="delta-item"><div class="dl">Korunan İşlem</div><div class="dv" style="color:var(--blue)">%' + keepRatio.toFixed(1) + ' (' + nf(sd.all.n) + ')</div></div>';
   }
 
   function toggleFilterSwitch(fk, cellStates) {
@@ -581,22 +582,22 @@
 
   function layoutBase(extra) {
     var lay = {
-      paper_bgcolor: 'rgba(0,0,0,0)',
-      plot_bgcolor: 'rgba(10,16,27,0.68)',
+      paper_bgcolor: '#101d2b',
+      plot_bgcolor: '#101d2b',
       font: {
-        family: "'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif",
-        size: 12,
-        color: '#dbe6f7',
+        family: 'Inter, Segoe UI, Arial, sans-serif',
+        size: 11,
+        color: '#aac0ce',
       },
       margin: { l: 54, r: 20, t: 24, b: 40 },
       xaxis: {
-        gridcolor: 'rgba(33,49,77,0.52)',
-        zerolinecolor: '#364d73',
+        gridcolor: '#26384a',
+        zerolinecolor: '#3b5267',
         tickfont: { size: 11, color: '#9fb0cc' },
       },
       yaxis: {
-        gridcolor: 'rgba(33,49,77,0.52)',
-        zerolinecolor: '#47628f',
+        gridcolor: '#26384a',
+        zerolinecolor: '#3b5267',
         zerolinewidth: 1.4,
         tickfont: { size: 11, color: '#9fb0cc' },
       },
@@ -604,14 +605,14 @@
         orientation: 'h',
         x: 0,
         y: 1.13,
-        font: { size: 11.5, color: '#dbe6f7' },
+        font: { size: 11, color: '#91a6b6' },
         bgcolor: 'rgba(0,0,0,0)',
       },
       hovermode: 'x unified',
       hoverlabel: {
-        bgcolor: '#0b1322',
-        bordercolor: '#38bdf8',
-        font: { family: "'Plus Jakarta Sans', sans-serif", size: 12, color: '#f1f5f9' },
+        bgcolor: '#142334',
+        bordercolor: '#376282',
+        font: { family: 'Inter, Segoe UI, Arial, sans-serif', size: 11.5, color: '#e8f0f4' },
       },
     };
     if (extra) {
@@ -643,14 +644,14 @@
         y: yPos,
         type: 'bar',
         name: 'Brüt Kâr (+' + uLbl.trim() + ')',
-        marker: { color: '#10b981' },
+        marker: { color: '#46d49a' },
       },
       {
         x: labels,
         y: yNeg,
         type: 'bar',
         name: 'Brüt Zarar (-' + uLbl.trim() + ')',
-        marker: { color: '#f43f5e' },
+        marker: { color: '#ff6f7d' },
       },
       {
         x: labels,
@@ -659,8 +660,8 @@
         type: 'scatter',
         mode: 'lines+markers',
         name: 'Net Sonuç (' + uLbl.trim() + ')',
-        line: { color: '#fbbf24', width: 2.2 },
-        marker: { size: 7, symbol: 'diamond', color: '#fbbf24' },
+        line: { color: '#f2c674', width: 2.2 },
+        marker: { size: 7, symbol: 'diamond', color: '#f2c674' },
       },
     ], layoutBase({
       barmode: 'relative',
@@ -702,7 +703,7 @@
         mode: 'lines',
         name: 'Kümülatif Net Özsermaye (' + uLbl.trim() + ')',
         fill: 'tozeroy',
-        fillcolor: colorLine === '#10b981' ? 'rgba(16,185,129,0.14)' : 'rgba(251,191,36,0.14)',
+        fillcolor: colorLine === '#46d49a' ? 'rgba(70,212,154,0.14)' : 'rgba(242,198,116,0.14)',
         line: { color: colorLine, width: 2.5 },
       },
     ], layoutBase({
@@ -717,8 +718,8 @@
         mode: 'lines',
         name: 'Drawdown (' + uLbl.trim() + ')',
         fill: 'tozeroy',
-        fillcolor: 'rgba(244,63,94,0.22)',
-        line: { color: '#f43f5e', width: 2 },
+        fillcolor: 'rgba(255,111,125,0.2)',
+        line: { color: '#ff6f7d', width: 2 },
       },
     ], layoutBase({
       yaxis: { title: 'Zirveden Düşüş (' + uLbl.trim() + ')' },
@@ -731,7 +732,7 @@
     var cellStates = getCellStates(st.id, st.tf);
     var m = unitMult();
     var uLbl = unitSuffix();
-    var palette = ['#94a3b8', '#38bdf8', '#a855f7', '#f59e0b', '#10b981'];
+    var palette = ['#91a6b6', '#6caaff', '#b48df2', '#f59e0b', '#46d49a'];
 
     var ordered = cellStates.filter(function (cs) {
       return !cs.isSingle && (cs.kind === 'temel' || isStatePosBoth(cs));
@@ -760,7 +761,7 @@
           mode: 'lines',
           name: lbl + (isSel ? ' [SEÇİLİ]' : ''),
           line: {
-            color: isSel ? '#22c55e' : (isBase ? '#f43f5e' : palette[idx % palette.length]),
+            color: isSel ? '#46d49a' : (isBase ? '#ff6f7d' : palette[idx % palette.length]),
             width: isSel ? 3 : (isBase ? 2.2 : 1.7),
             dash: isBase ? 'dot' : 'solid',
           },
@@ -800,15 +801,15 @@
     var r365 = rollingSum(365);
 
     Plotly.react('cRoll_all', [
-      { x: DATE_STRS, y: Array.from(r30), type: 'scatter', mode: 'lines', name: '30 Günlük Net', line: { color: '#38bdf8', width: 1.5 } },
-      { x: DATE_STRS, y: Array.from(r90), type: 'scatter', mode: 'lines', name: '90 Günlük Net', line: { color: '#10b981', width: 2.1 } },
-      { x: DATE_STRS, y: Array.from(r365), type: 'scatter', mode: 'lines', name: '365 Günlük Net', line: { color: '#fbbf24', width: 2.5 } },
+      { x: DATE_STRS, y: Array.from(r30), type: 'scatter', mode: 'lines', name: '30 Günlük Net', line: { color: '#6caaff', width: 1.5 } },
+      { x: DATE_STRS, y: Array.from(r90), type: 'scatter', mode: 'lines', name: '90 Günlük Net', line: { color: '#46d49a', width: 2.1 } },
+      { x: DATE_STRS, y: Array.from(r365), type: 'scatter', mode: 'lines', name: '365 Günlük Net', line: { color: '#f2c674', width: 2.5 } },
     ], layoutBase({ yaxis: { title: 'Hareketli Net (' + uLbl.trim() + ')' } }), PLOT_CFG);
 
     Plotly.react('cRoll_26', [
-      { x: DATES_2026, y: Array.from(r30.slice(IDX_2026)), type: 'scatter', mode: 'lines', name: '30 Günlük Net', line: { color: '#38bdf8', width: 1.8 } },
-      { x: DATES_2026, y: Array.from(r90.slice(IDX_2026)), type: 'scatter', mode: 'lines', name: '90 Günlük Net', line: { color: '#10b981', width: 2.3 } },
-      { x: DATES_2026, y: Array.from(r365.slice(IDX_2026)), type: 'scatter', mode: 'lines', name: '365 Günlük Net', line: { color: '#fbbf24', width: 2.6 } },
+      { x: DATES_2026, y: Array.from(r30.slice(IDX_2026)), type: 'scatter', mode: 'lines', name: '30 Günlük Net', line: { color: '#6caaff', width: 1.8 } },
+      { x: DATES_2026, y: Array.from(r90.slice(IDX_2026)), type: 'scatter', mode: 'lines', name: '90 Günlük Net', line: { color: '#46d49a', width: 2.3 } },
+      { x: DATES_2026, y: Array.from(r365.slice(IDX_2026)), type: 'scatter', mode: 'lines', name: '365 Günlük Net', line: { color: '#f2c674', width: 2.6 } },
     ], layoutBase({ yaxis: { title: '2026 Hareketli Net (' + uLbl.trim() + ')' } }), PLOT_CFG);
   }
 
@@ -825,8 +826,8 @@
         nArr[i] = -Math.round(sideObj.dayNeg[i] * m * 100) / 100;
       }
       Plotly.react(domId, [
-        { x: sideObj.dates, y: pArr, type: 'bar', name: 'Günlük Kâr (+' + uLbl.trim() + ')', marker: { color: '#10b981' } },
-        { x: sideObj.dates, y: nArr, type: 'bar', name: 'Günlük Zarar (-' + uLbl.trim() + ')', marker: { color: '#f43f5e' } },
+        { x: sideObj.dates, y: pArr, type: 'bar', name: 'Günlük Kâr (+' + uLbl.trim() + ')', marker: { color: '#46d49a' } },
+        { x: sideObj.dates, y: nArr, type: 'bar', name: 'Günlük Zarar (-' + uLbl.trim() + ')', marker: { color: '#ff6f7d' } },
       ], layoutBase({
         barmode: 'relative',
         bargap: gap,
@@ -852,9 +853,9 @@
       var wNet = wKeys.map(function (k) { var r = wMap.get(k); return Math.round((r.p - r.ng) * m * 10) / 10; });
 
       Plotly.react(domId, [
-        { x: wKeys, y: wPos, type: 'bar', name: 'Haftalık Kâr (+' + uLbl.trim() + ')', marker: { color: '#10b981' } },
-        { x: wKeys, y: wNeg, type: 'bar', name: 'Haftalık Zarar (-' + uLbl.trim() + ')', marker: { color: '#f43f5e' } },
-        { x: wKeys, y: wNet, type: 'scatter', mode: 'lines', name: 'Haftalık Net', line: { color: '#fbbf24', width: 1.8 } },
+        { x: wKeys, y: wPos, type: 'bar', name: 'Haftalık Kâr (+' + uLbl.trim() + ')', marker: { color: '#46d49a' } },
+        { x: wKeys, y: wNeg, type: 'bar', name: 'Haftalık Zarar (-' + uLbl.trim() + ')', marker: { color: '#ff6f7d' } },
+        { x: wKeys, y: wNet, type: 'scatter', mode: 'lines', name: 'Haftalık Net', line: { color: '#f2c674', width: 1.8 } },
       ], layoutBase({
         barmode: 'relative',
         yaxis: { title: 'Haftalık Kâr/Zarar (' + uLbl.trim() + ')' },
@@ -908,7 +909,7 @@
       [0.38, '#881337'],
       [0.5, '#1e293b'],
       [0.62, '#065f46'],
-      [1, '#10b981'],
+      [1, '#46d49a'],
     ];
 
     Plotly.react('cCal_all', [{
@@ -966,7 +967,7 @@
           y: counts,
           type: 'bar',
           name: 'İşlem Sayısı',
-          marker: { color: '#38bdf8' },
+          marker: { color: '#6caaff' },
           text: counts.map(function (c) { return nf(c); }),
           textposition: 'outside',
           cliponaxis: false,
@@ -978,8 +979,8 @@
           type: 'scatter',
           mode: 'lines+markers',
           name: 'Kazanma Oranı (%)',
-          line: { color: '#10b981', width: 2.3 },
-          marker: { size: 7, color: '#10b981' },
+          line: { color: '#46d49a', width: 2.3 },
+          marker: { size: 7, color: '#46d49a' },
         },
       ], layoutBase({
         xaxis: { type: 'category' },
@@ -990,7 +991,7 @@
           side: 'right',
           range: [0, 100],
           showgrid: false,
-          tickfont: { color: '#10b981' },
+          tickfont: { color: '#46d49a' },
         },
       }), PLOT_CFG);
     }
@@ -1016,7 +1017,7 @@
           y: counts,
           type: 'bar',
           name: 'Çıkış Adedi',
-          marker: { color: ['#f43f5e', '#10b981', '#38bdf8', '#a855f7'] },
+          marker: { color: ['#ff6f7d', '#46d49a', '#6caaff', '#b48df2'] },
           text: counts.map(function (c, idx) { return nf(c) + ' (WR %' + wrs[idx] + ')'; }),
           textposition: 'outside',
           cliponaxis: false,
@@ -1055,9 +1056,9 @@
       var cNet = filtered.map(function (c) { return Math.round(((c[3] - c[4]) / 100) * m * 10) / 10; });
 
       Plotly.react(domId, [
-        { y: names, x: cPos, orientation: 'h', type: 'bar', name: 'Brüt Kâr (+' + uLbl.trim() + ')', marker: { color: '#10b981' } },
-        { y: names, x: cNeg, orientation: 'h', type: 'bar', name: 'Brüt Zarar (-' + uLbl.trim() + ')', marker: { color: '#f43f5e' } },
-        { y: names, x: cNet, orientation: 'h', type: 'scatter', mode: 'markers', name: 'Net Sonuç', marker: { color: '#fbbf24', size: 6.5, symbol: 'diamond' } },
+        { y: names, x: cPos, orientation: 'h', type: 'bar', name: 'Brüt Kâr (+' + uLbl.trim() + ')', marker: { color: '#46d49a' } },
+        { y: names, x: cNeg, orientation: 'h', type: 'bar', name: 'Brüt Zarar (-' + uLbl.trim() + ')', marker: { color: '#ff6f7d' } },
+        { y: names, x: cNet, orientation: 'h', type: 'scatter', mode: 'markers', name: 'Net Sonuç', marker: { color: '#f2c674', size: 6.5, symbol: 'diamond' } },
       ], layoutBase({
         barmode: 'relative',
         hovermode: 'y unified',
@@ -1078,6 +1079,12 @@
     if (!rowsF.length || !FLT_CAT.length) return;
 
     // [fn, fwr, favg, ftot, n26, wr26, avg26, tot26]
+    function moneyCompact(v) {
+      var a = Math.abs(v);
+      var s = a >= 1e6 ? (a / 1e6).toFixed(2) + 'M' : a >= 1e3 ? (a / 1e3).toFixed(1) + 'K' : a.toFixed(0);
+      return (v >= 0 ? '+$' : '-$') + s;
+    }
+
     function plotFltHeatmap(domId, is2026) {
       var yNames = [];
       var zMatrix = [];
@@ -1114,15 +1121,15 @@
           (it.n / maxN) * 0.6,
         ]);
         textMatrix.push([
-          (it.tot >= 0 ? '+$' : '-$') + nf(Math.abs(it.tot), 0),
+          moneyCompact(it.tot),
           '%' + it.wr.toFixed(1),
           (it.avg >= 0 ? '+' : '') + it.avg.toFixed(2) + '%',
-          nf(it.n) + ' işl.',
+          nf(it.n),
         ]);
         customMatrix.push(it);
       });
 
-      var xCols = ['20. Toplam Net ($10)', '21. Kazanma Oranı (WR%)', '22. Ortalama R (%)', '23. İşlem Sayısı'];
+      var xCols = ['Toplam<br>Net $', 'Kazanma<br>WR %', 'Ort.<br>R %', 'İşlem<br>Sayısı'];
 
       Plotly.react(domId, [{
         x: xCols,
@@ -1130,22 +1137,22 @@
         z: zMatrix,
         text: textMatrix,
         texttemplate: '%{text}',
-        textfont: { family: "'JetBrains Mono', monospace", size: 10 },
+        textfont: { family: 'monospace', size: 9.5 },
         type: 'heatmap',
         colorscale: [
           [0, '#be123c'],
           [0.42, '#4c0519'],
           [0.5, '#17253b'],
           [0.58, '#064e3b'],
-          [1, '#10b981'],
+          [1, '#46d49a'],
         ],
         zmin: -1,
         zmax: 1,
         showscale: false,
       }], layoutBase({
-        margin: { l: 175, r: 16, t: 28, b: 30 },
-        xaxis: { type: 'category', side: 'top' },
-        yaxis: { type: 'category', tickfont: { size: 10, color: '#dbe6f7' } },
+        margin: { l: 218, r: 10, t: 54, b: 16 },
+        xaxis: { type: 'category', side: 'top', tickfont: { size: 10, color: '#aac0ce' } },
+        yaxis: { type: 'category', tickfont: { size: 9.5, color: '#c5d5df' } },
         hovermode: 'closest',
       }), PLOT_CFG);
     }
@@ -1164,8 +1171,8 @@
     renderHeaderAndSwitchBox(sd);
     renderSplitKpis(sd);
 
-    drawEquityAndDrawdownPair('cEq_all', 'cDd_all', sd.all, '#10b981');
-    drawEquityAndDrawdownPair('cEq_26', 'cDd_26', sd.y26, '#fbbf24');
+    drawEquityAndDrawdownPair('cEq_all', 'cDd_all', sd.all, '#46d49a');
+    drawEquityAndDrawdownPair('cEq_26', 'cDd_26', sd.y26, '#f2c674');
     drawFilterCompareRow(sd);
     drawRollingRow(sd);
     drawDailyAndWeeklyRows(sd);

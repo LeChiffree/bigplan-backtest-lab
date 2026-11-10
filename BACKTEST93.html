@@ -6,29 +6,16 @@
 <title>Filtre Laboratuvarı PRO · Sol: Tüm Yıllar | Sağ: 2026 Karşılaştırmalı Analiz</title>
 <style>
 :root {
-  --bg: #070b12;
-  --bg-elev: #0c1320;
-  --panel: #101929;
-  --panel-alt: #142034;
-  --panel-hover: #192842;
-  --line: #21314d;
-  --line-soft: #18253b;
-  --tx: #f1f5f9;
-  --tx-sec: #b5c4dc;
-  --dim: #7c8fac;
-  --acc: #38bdf8;
-  --acc-soft: rgba(56, 189, 248, 0.14);
-  --pos: #10b981;
-  --pos-bright: #22c55e;
-  --pos-soft: rgba(16, 185, 129, 0.16);
-  --neg: #f43f5e;
-  --neg-bright: #ef4444;
-  --neg-soft: rgba(244, 63, 94, 0.16);
-  --warn: #f59e0b;
-  --gold: #fbbf24;
-  --purple: #a855f7;
-  --font-sans: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
+  --bg: #09111c;
+  --panel: #101d2b;
+  --panel2: #142334;
+  --line: #26384a;
+  --text: #e8f0f4;
+  --muted: #91a6b6;
+  --green: #46d49a;
+  --red: #ff6f7d;
+  --blue: #6caaff;
+  --amber: #f2c674;
 }
 
 * {
@@ -39,54 +26,31 @@ html, body {
   margin: 0;
   padding: 0;
   background: var(--bg);
-  color: var(--tx);
-  font-family: var(--font-sans);
-  font-size: 13.5px;
-  line-height: 1.48;
+  color: var(--text);
+  font: 14px/1.5 Inter, "Segoe UI", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-.app {
-  display: grid;
-  grid-template-columns: 345px minmax(0, 1fr);
-  min-height: 100vh;
-}
-
-@media (max-width: 1220px) {
-  .app {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* SOL KONTROL PANELİ */
-.side {
-  background: linear-gradient(180deg, #0b121f 0%, #070b12 100%);
-  border-right: 1px solid var(--line);
-  padding: 16px 14px 28px;
-  position: sticky;
-  top: 0;
-  height: 100vh;
+/* ============================ SOL KONTROL PANELİ ============================ */
+aside.side {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 300px;
   overflow-y: auto;
+  background: #0e1927;
+  border-right: 1px solid var(--line);
+  padding: 22px 16px 40px;
+  z-index: 20;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-@media (max-width: 1220px) {
-  .side {
-    position: static;
-    height: auto;
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-  }
+  gap: 14px;
 }
 
 .brand {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding-bottom: 10px;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -97,73 +61,77 @@ html, body {
 }
 
 .logo {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #22c55e 0%, #38bdf8 55%, #a855f7 100%);
+  background: var(--panel2);
+  border: 1px solid #376282;
+  color: var(--blue);
   display: grid;
   place-items: center;
-  font-family: var(--font-mono);
   font-weight: 800;
-  font-size: 15px;
-  color: #04101c;
+  font-size: 14px;
+  letter-spacing: 0.5px;
 }
 
 .brand h1 {
   margin: 0;
-  font-size: 16.5px;
-  font-weight: 800;
-  color: var(--tx);
+  font-size: 19px;
+  letter-spacing: -0.4px;
+  line-height: 1.15;
 }
 
 .brand p {
   margin: 1px 0 0;
   font-size: 11.5px;
-  color: var(--tx-sec);
+  color: var(--muted);
 }
 
 .nav-links {
   display: flex;
-  gap: 5px;
+  gap: 6px;
+  margin-top: 7px;
 }
 
 .nav-pill {
   font-size: 11px;
   font-weight: 700;
-  padding: 4px 8px;
+  padding: 5px 9px;
   border-radius: 7px;
   border: 1px solid var(--line);
-  background: var(--panel);
-  color: var(--tx-sec);
+  background: var(--panel2);
+  color: var(--muted);
   text-decoration: none;
 }
 
 .nav-pill:hover {
-  border-color: var(--acc);
-  color: var(--tx);
+  border-color: #376282;
+  color: var(--blue);
 }
 
 .spec-badges {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 5px;
-  background: rgba(16, 185, 129, 0.08);
-  border: 1px solid rgba(16, 185, 129, 0.32);
-  border-radius: 10px;
+  background: rgba(70, 212, 154, 0.06);
+  border: 1px solid rgba(70, 212, 154, 0.26);
+  border-radius: 11px;
   padding: 9px 11px;
-  font-size: 11.5px;
-  color: #bbf7d0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #b7d8ca;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.spec-badges div b {
-  color: #34d399;
+.spec-badges b {
+  color: var(--green);
+  font-weight: 650;
 }
 
 .step-box {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 11px 12px;
+  padding: 12px 13px;
 }
 
 .step-head {
@@ -178,21 +146,19 @@ html, body {
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 12px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--tx);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: -0.1px;
+  color: var(--text);
 }
 
 .step-num {
   width: 20px;
   height: 20px;
   border-radius: 6px;
-  background: var(--acc-soft);
-  border: 1px solid rgba(56, 189, 248, 0.45);
-  color: var(--acc);
-  font-family: var(--font-mono);
+  background: #172738;
+  border: 1px solid #34475a;
+  color: var(--blue);
   font-size: 11px;
   font-weight: 800;
   display: inline-grid;
@@ -201,9 +167,9 @@ html, body {
 
 .sub-label {
   font-size: 11px;
-  font-weight: 700;
-  color: var(--tx-sec);
-  margin: 7px 0 4px;
+  font-weight: 650;
+  color: #b8cad5;
+  margin: 9px 0 5px;
 }
 
 .chips {
@@ -213,40 +179,39 @@ html, body {
 }
 
 .chip {
-  background: var(--bg-elev);
-  color: var(--tx-sec);
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  padding: 4px 8px;
-  font-family: var(--font-sans);
+  background: #172738;
+  color: var(--muted);
+  border: 1px solid #34475a;
+  border-radius: 8px;
+  padding: 5px 9px;
+  font: inherit;
   font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   transition: 0.14s;
 }
 
 .chip:hover {
-  border-color: var(--acc);
-  color: var(--tx);
+  border-color: var(--blue);
+  color: var(--text);
 }
 
 .chip.on {
-  background: var(--acc);
-  border-color: var(--acc);
-  color: #04101c;
-  font-weight: 800;
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #071320;
+  font-weight: 750;
 }
 
 .chip .c {
-  font-family: var(--font-mono);
   font-size: 10px;
   opacity: 0.85;
   padding: 0 4px;
   border-radius: 4px;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.22);
 }
 
 .stepper-bar {
@@ -258,94 +223,97 @@ html, body {
 }
 
 .btn-step {
-  background: var(--bg-elev);
-  border: 1px solid var(--line);
-  color: var(--tx);
-  border-radius: 7px;
+  background: #1b3952;
+  border: 1px solid #376282;
+  color: var(--text);
+  border-radius: 8px;
   padding: 6px 8px;
-  font-family: var(--font-sans);
-  font-size: 11.5px;
+  font: inherit;
+  font-size: 11px;
   font-weight: 700;
   cursor: pointer;
 }
 
 .btn-step:hover {
-  border-color: var(--acc);
-  color: var(--acc);
+  background: #245071;
 }
 
 .stepper-pos {
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  font-weight: 800;
-  color: var(--gold);
+  font-size: 11px;
+  font-weight: 750;
+  color: var(--amber);
+  white-space: nowrap;
 }
 
 .search-row {
   display: grid;
-  grid-template-columns: 1fr 125px;
-  gap: 5px;
+  grid-template-columns: 1fr 118px;
+  gap: 6px;
   margin-bottom: 7px;
 }
 
 .input, .select {
   width: 100%;
-  background: var(--bg-elev);
-  border: 1px solid var(--line);
-  color: var(--tx);
-  border-radius: 7px;
-  padding: 6px 8px;
-  font-family: var(--font-sans);
+  background: #172738;
+  color: var(--text);
+  border: 1px solid #34475a;
+  border-radius: 8px;
+  padding: 7px 9px;
+  font: inherit;
   font-size: 12px;
   outline: none;
 }
 
+.input:focus, .select:focus {
+  border-color: var(--blue);
+}
+
 .strat-list {
-  max-height: 270px;
+  max-height: 280px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
   padding-right: 3px;
 }
 
 .strat-item {
-  background: var(--bg-elev);
-  border: 1px solid var(--line-soft);
-  border-radius: 8px;
-  padding: 7px 9px;
+  background: #122131;
+  border: 1px solid #2b3f53;
+  border-radius: 9px;
+  padding: 8px 10px;
   cursor: pointer;
 }
 
 .strat-item:hover {
-  border-color: var(--line);
-  background: var(--panel-hover);
+  background: #1a3042;
 }
 
 .strat-item.on {
-  background: rgba(56, 189, 248, 0.14);
-  border-color: var(--acc);
-  box-shadow: inset 3px 0 0 var(--acc);
+  background: rgba(108, 170, 255, 0.13);
+  border-color: var(--blue);
+  box-shadow: inset 3px 0 0 var(--blue);
 }
 
 .strat-r1 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: 7px;
 }
 
 .strat-name {
   font-size: 12.5px;
-  font-weight: 700;
-  color: var(--tx);
+  font-weight: 650;
+  color: var(--text);
 }
 
 .strat-kasa {
-  font-family: var(--font-mono);
   font-size: 12px;
-  font-weight: 700;
-  color: var(--pos-bright);
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  color: var(--green);
+  white-space: nowrap;
 }
 
 .strat-r2 {
@@ -353,18 +321,17 @@ html, body {
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  margin-top: 2px;
+  margin-top: 3px;
   font-size: 11px;
-  color: var(--tx-sec);
+  color: var(--muted);
 }
 
 .tf-mini {
-  font-family: var(--font-mono);
   font-size: 10px;
   padding: 1px 5px;
   border-radius: 4px;
-  background: #1a2740;
-  color: #93c5fd;
+  background: #1b344b;
+  color: #a9cdf5;
   margin-right: 2px;
 }
 
@@ -375,160 +342,183 @@ html, body {
 }
 
 .var-item {
-  background: var(--bg-elev);
-  border: 1px solid var(--line-soft);
-  border-radius: 8px;
-  padding: 7px 9px;
+  background: #122131;
+  border: 1px solid #2b3f53;
+  border-radius: 9px;
+  padding: 8px 10px;
   cursor: pointer;
 }
 
+.var-item:hover {
+  background: #1a3042;
+}
+
 .var-item.on {
-  background: rgba(16, 185, 129, 0.13);
-  border-color: var(--pos-bright);
-  box-shadow: inset 3px 0 0 var(--pos-bright);
+  background: rgba(70, 212, 154, 0.1);
+  border-color: var(--green);
+  box-shadow: inset 3px 0 0 var(--green);
 }
 
 .var-r1 {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 7px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 650;
 }
 
 .var-r2 {
   font-size: 11px;
-  color: var(--tx-sec);
-  margin-top: 2px;
+  color: var(--muted);
+  margin-top: 3px;
 }
 
-/* SAĞ ANA İÇERİK */
-.main {
-  padding: 16px 20px 60px;
+/* ============================ SAĞ ANA İÇERİK ============================ */
+main.main {
+  margin-left: 300px;
+  padding: 24px 30px 56px;
+  max-width: 1920px;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--blue);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+main.main > h1 {
+  font-size: 25px;
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+
+main.main > .sub {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  max-width: 1150px;
 }
 
 .hero-grid {
   display: grid;
   grid-template-columns: 1.15fr 0.85fr;
   gap: 14px;
-}
-
-@media (max-width: 1320px) {
-  .hero-grid {
-    grid-template-columns: 1fr;
-  }
+  align-items: start;
 }
 
 .strat-hero {
-  background: linear-gradient(135deg, #121d31 0%, #0c1422 100%);
+  background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 14px;
-  padding: 15px 18px;
+  padding: 17px 18px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 10px;
+  gap: 11px;
+  min-width: 0;
 }
 
 .strat-hero h2 {
   margin: 0;
-  font-size: 21px;
-  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.3px;
 }
 
 .strat-hero .sub {
   margin-top: 3px;
-  font-size: 13px;
-  color: var(--tx-sec);
+  font-size: 12.5px;
+  color: var(--muted);
 }
 
 .badges {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 7px;
+  margin-top: 9px;
 }
 
 .badge {
-  padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 11.5px;
-  font-weight: 700;
-  background: var(--panel-alt);
+  padding: 4px 9px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--panel2);
   border: 1px solid var(--line);
-  color: var(--tx-sec);
+  color: var(--muted);
 }
 
-.badge.pos {
-  background: var(--pos-soft);
-  border-color: rgba(34, 197, 94, 0.45);
-  color: #6ee7b7;
-}
-
-.badge.acc {
-  background: var(--acc-soft);
-  border-color: rgba(56, 189, 248, 0.45);
-  color: #7dd3fc;
+.badge.pos, .badge.acc {
+  border-color: rgba(70, 212, 154, 0.4);
+  color: var(--green);
+  background: rgba(70, 212, 154, 0.07);
 }
 
 .badge.gold {
-  background: rgba(251, 191, 36, 0.14);
-  border-color: rgba(251, 191, 36, 0.45);
-  color: #fde68a;
+  border-color: rgba(242, 198, 116, 0.4);
+  color: var(--amber);
+  background: rgba(242, 198, 116, 0.07);
 }
 
 .rules-bar {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 7px;
-  padding-top: 9px;
-  border-top: 1px solid var(--line-soft);
-  font-size: 12px;
-  color: var(--tx-sec);
+  padding-top: 11px;
+  border-top: 1px solid var(--line);
+  font-size: 11.5px;
+  color: var(--muted);
 }
 
 .rule-pill {
-  background: rgba(7, 11, 18, 0.55);
-  border: 1px solid var(--line-soft);
+  background: #122131;
+  border: 1px solid #2b3f53;
   border-radius: 8px;
   padding: 6px 9px;
 }
 
 .rule-pill b {
-  color: var(--tx);
+  color: var(--text);
 }
 
-/* SWITCH BOX */
+/* Switch box */
 .switch-box-card {
-  background: linear-gradient(135deg, #132136 0%, #0d1726 100%);
-  border: 1px solid rgba(56, 189, 248, 0.4);
+  background: var(--panel);
+  border: 1px solid var(--line);
   border-radius: 14px;
-  padding: 14px 16px;
+  padding: 15px 16px;
   display: flex;
   flex-direction: column;
   gap: 9px;
+  min-width: 0;
 }
 
 .switch-box-head {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
+  gap: 8px;
 }
 
 .switch-box-head h3 {
   margin: 0;
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 14.5px;
+  letter-spacing: -0.2px;
 }
 
 .switch-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  max-height: 250px;
+  overflow-y: auto;
 }
 
 .sw-row {
@@ -536,36 +526,37 @@ html, body {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  background: rgba(7, 11, 18, 0.6);
-  border: 1px solid var(--line);
+  background: #122131;
+  border: 1px solid #2b3f53;
   border-radius: 9px;
-  padding: 6px 10px;
+  padding: 7px 10px;
   cursor: pointer;
 }
 
 .sw-row.on {
-  background: rgba(16, 185, 129, 0.12);
-  border-color: rgba(34, 197, 94, 0.55);
+  background: rgba(70, 212, 154, 0.08);
+  border-color: rgba(70, 212, 154, 0.45);
 }
 
 .sw-title {
-  font-size: 12.5px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 650;
 }
 
 .sw-desc {
   font-size: 11px;
-  color: var(--tx-sec);
+  color: var(--muted);
+  line-height: 1.4;
 }
 
 .sw-toggle {
-  width: 40px;
-  height: 22px;
+  width: 38px;
+  height: 21px;
   border-radius: 999px;
-  background: #26354d;
-  border: 1px solid #384d6e;
+  background: #26384a;
+  border: 1px solid #34475a;
   position: relative;
-  flex: 0 0 40px;
+  flex: 0 0 38px;
   transition: 0.16s;
 }
 
@@ -574,146 +565,143 @@ html, body {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
-  background: #cbd5e1;
+  background: #a9c0cf;
   transition: 0.16s;
 }
 
 .sw-row.on .sw-toggle {
-  background: var(--pos-bright);
-  border-color: #16a34a;
+  background: var(--green);
+  border-color: var(--green);
 }
 
 .sw-row.on .sw-toggle::after {
-  transform: translateX(18px);
-  background: #04130a;
+  transform: translateX(17px);
+  background: #071320;
 }
 
 .preset-row {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
-  padding-top: 5px;
-  border-top: 1px dashed var(--line);
+  padding-top: 7px;
+  border-top: 1px solid var(--line);
 }
 
 .preset-btn {
-  background: var(--bg-elev);
-  border: 1px solid var(--line);
-  color: var(--tx-sec);
+  background: #1b3952;
+  border: 1px solid #376282;
+  color: var(--text);
   border-radius: 7px;
-  padding: 4px 9px;
-  font-size: 11.5px;
-  font-weight: 700;
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
   cursor: pointer;
 }
 
+.preset-btn:hover {
+  background: #245071;
+}
+
 .preset-btn.on {
-  background: var(--pos-bright);
-  border-color: var(--pos-bright);
-  color: #04130a;
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #071320;
+  font-weight: 750;
 }
 
 .delta-strip {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 6px;
-  background: rgba(7, 11, 18, 0.72);
-  border: 1px solid var(--line-soft);
+  background: #122131;
+  border: 1px solid #2b3f53;
   border-radius: 8px;
-  padding: 6px 9px;
+  padding: 7px 9px;
 }
 
 .delta-item .dl {
-  color: var(--dim);
-  font-size: 10px;
+  color: var(--muted);
+  font-size: 9.5px;
   text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .delta-item .dv {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 11.5px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  margin-top: 1px;
 }
 
 /* ================= EKRANI İKİYE BÖLEN YAPI: SOL TÜM YILLAR | SAĞ 2026 ================= */
 .split-sticky-headers {
   position: sticky;
   top: 0;
-  z-index: 30;
+  z-index: 15;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  background: rgba(7, 11, 18, 0.94);
-  backdrop-filter: blur(10px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  background: rgba(9, 17, 28, 0.94);
+  backdrop-filter: blur(8px);
   padding: 8px 0;
   border-bottom: 1px solid var(--line);
 }
 
 .col-banner {
-  border-radius: 12px;
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 11px;
   padding: 10px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-weight: 800;
-  font-size: 15px;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: -0.2px;
 }
 
 .col-banner.left-all {
-  background: linear-gradient(90deg, rgba(56, 189, 248, 0.18), rgba(16, 25, 41, 0.9));
-  border: 1px solid rgba(56, 189, 248, 0.45);
-  color: #e0f2fe;
+  border-left: 4px solid var(--blue);
 }
 
 .col-banner.right-2026 {
-  background: linear-gradient(90deg, rgba(251, 191, 36, 0.18), rgba(16, 25, 41, 0.9));
-  border: 1px solid rgba(251, 191, 36, 0.48);
-  color: #fef3c7;
+  border-left: 4px solid var(--amber);
 }
 
 .col-banner span.sub {
-  font-size: 12px;
-  font-weight: 600;
-  opacity: 0.85;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
 }
 
 .split-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 16px;
+  gap: 14px;
   align-items: stretch;
 }
 
-@media (max-width: 1080px) {
-  .split-sticky-headers,
-  .split-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* 8'Lİ KPI KUTULARI (5..12) */
+/* 8'li KPI kartları */
 .kpi-grid-8 {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 9px;
 }
 
-@media (max-width: 1450px) {
-  .kpi-grid-8 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 .kpi-box {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 11px;
-  padding: 10px 12px;
+  border-radius: 12px;
+  padding: 12px 13px;
   position: relative;
   overflow: hidden;
+  min-width: 0;
 }
 
 .kpi-box::before {
@@ -723,128 +711,184 @@ html, body {
   top: 0;
   bottom: 0;
   width: 3px;
-  background: var(--acc);
+  background: var(--blue);
 }
 
-.kpi-box.pos::before { background: var(--pos-bright); }
-.kpi-box.neg::before { background: var(--neg-bright); }
-.kpi-box.gold::before { background: var(--gold); }
+.kpi-box.pos::before { background: var(--green); }
+.kpi-box.neg::before { background: var(--red); }
+.kpi-box.gold::before { background: var(--amber); }
 
 .kpi-box .kl {
   font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--tx-sec);
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .kpi-box .kv {
-  font-family: var(--font-mono);
-  font-size: 19px;
-  font-weight: 800;
-  margin-top: 3px;
+  font-size: 20px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.kpi-box .kv.pos { color: var(--pos-bright); }
-.kpi-box .kv.neg { color: var(--neg-bright); }
-.kpi-box .kv.acc { color: var(--acc); }
-.kpi-box .kv.gold { color: var(--gold); }
+.kpi-box .kv.pos { color: var(--green); }
+.kpi-box .kv.neg { color: var(--red); }
+.kpi-box .kv.acc { color: var(--blue); }
+.kpi-box .kv.gold { color: var(--amber); }
 
 .kpi-box .ks {
-  font-size: 11px;
-  color: var(--dim);
-  margin-top: 2px;
+  font-size: 10.5px;
+  color: var(--muted);
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* GRAFİK KARTLARI */
+/* Grafik panelleri */
 .chart-card {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 13px;
-  padding: 13px 14px 10px;
+  border-radius: 14px;
+  padding: 15px 16px 11px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   min-width: 0;
-}
-
-.chart-card.left-card {
-  border-top: 2px solid rgba(56, 189, 248, 0.55);
-}
-
-.chart-card.right-card {
-  border-top: 2px solid rgba(251, 191, 36, 0.55);
 }
 
 .chart-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 8px;
+  gap: 9px;
+  margin-bottom: 2px;
 }
 
 .chart-head h3 {
   margin: 0;
-  font-size: 14px;
-  font-weight: 800;
-  color: var(--tx);
+  font-size: 15px;
+  letter-spacing: -0.2px;
+  line-height: 1.3;
 }
 
 .chart-head p {
-  margin: 2px 0 0;
+  margin: 3px 0 0;
   font-size: 11.5px;
-  color: var(--tx-sec);
+  line-height: 1.45;
+  color: var(--muted);
 }
 
 .tag-side {
-  font-family: var(--font-mono);
   font-size: 10.5px;
-  font-weight: 800;
-  padding: 2px 7px;
-  border-radius: 6px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 7px;
   white-space: nowrap;
+  border: 1px solid var(--line);
+  background: var(--panel2);
 }
 
 .tag-side.all {
-  background: rgba(56, 189, 248, 0.14);
-  color: #7dd3fc;
+  color: var(--blue);
+  border-color: rgba(108, 170, 255, 0.4);
 }
 
 .tag-side.y26 {
-  background: rgba(251, 191, 36, 0.15);
-  color: #fde68a;
+  color: var(--amber);
+  border-color: rgba(242, 198, 116, 0.4);
 }
 
 .plot-box {
   width: 100%;
-  height: 310px;
+  height: 320px;
 }
 
 .plot-box.tall {
-  height: 460px;
+  height: 470px;
 }
 
 .plot-box.xtall {
-  height: 620px;
+  height: 780px;
 }
 
 footer {
-  margin-top: 16px;
-  padding-top: 14px;
+  margin-top: 8px;
+  padding: 18px 0 8px;
   border-top: 1px solid var(--line);
   font-size: 12px;
-  color: var(--dim);
-  line-height: 1.55;
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 1500px;
+}
+
+footer b {
+  color: #c5d5df;
+}
+
+/* ============================ RESPONSIVE ============================ */
+@media (max-width: 1600px) {
+  .kpi-grid-8 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1240px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
+  main.main {
+    padding: 20px 20px 46px;
+  }
+}
+
+@media (max-width: 1080px) {
+  aside.side {
+    position: static;
+    width: auto;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  main.main {
+    margin-left: 0;
+  }
+  .split-sticky-headers,
+  .split-row {
+    grid-template-columns: 1fr;
+  }
+  .split-sticky-headers {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .kpi-grid-8 {
+    grid-template-columns: 1fr;
+  }
+  .delta-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  main.main {
+    padding: 14px;
+  }
 }
 
 </style>
 </head>
 <body>
-<div class="app">
 
   <!-- SOL KONTROL PANELİ (1. Metot Seçici & 2. Zaman Dilimi Seçici) -->
   <aside class="side">
     <div class="brand">
+      <div class="eyebrow">Backtest laboratuvarı</div>
       <div class="brand-left">
         <div class="logo">FL</div>
         <div>
@@ -887,9 +931,10 @@ footer {
       </div>
       <div class="stepper-bar">
         <button class="btn-step" id="prevStrat">◀ Önceki</button>
-        <span style="font-size:10.5px;color:var(--dim)">Tek Tek İlerlet</span>
+        <span style="font-size:10.5px;color:var(--muted)">Tek Tek İlerlet</span>
         <button class="btn-step" id="nextStrat">Sonraki ▶</button>
       </div>
+      <div class="sub-label" id="scenarioCount" style="margin:0 0 7px"></div>
       <div class="search-row">
         <input class="input" type="search" id="qInput" placeholder="Metot veya filtre ara...">
         <select class="select" id="sortSel">
@@ -919,6 +964,10 @@ footer {
   <!-- SAĞ ANA EKRAN: SOLDA TÜM YILLAR | SAĞDA SADECE 2026 -->
   <main class="main">
 
+    <div class="eyebrow">2022–2026 · Binance USD-M Futures · 5m çıkış çözümlemesi</div>
+    <h1>Filtre Laboratuvarı PRO</h1>
+    <p class="sub">42 metot · 520 USDT perpetual sembol · 224 doğrulanmış senaryo · işlem başı 10 USDT · azami 1× kaldıraç · ücret, kayma ve tarihsel funding dahil</p>
+
     <!-- ÜST STRATEJİ ÖZETİ + SAĞ SWITCH BOX -->
     <div class="hero-grid">
       <div class="strat-hero">
@@ -932,8 +981,8 @@ footer {
 
       <div class="switch-box-card">
         <div class="switch-box-head">
-          <h3>🎛️ Uygulanacak Filtre Switch Box</h3>
-          <span style="font-size:11px;color:var(--tx-sec)">Aç/Kapat ile Anlık Karşılaştırma</span>
+          <h3>Uygulanacak Filtre Switch Box</h3>
+          <span style="font-size:11px;color:var(--muted)">Aç/Kapat ile anlık karşılaştırma</span>
         </div>
         <div class="switch-list" id="switchList"></div>
         <div class="preset-row" id="presetRow"></div>
@@ -944,12 +993,12 @@ footer {
     <!-- İKİYE BÖLÜNMÜŞ YAPIŞKAN SÜTUN BAŞLIKLARI (3. Tüm Yıllar Paneli | 4. 2026 Paneli) -->
     <div class="split-sticky-headers">
       <div class="col-banner left-all">
-        <span>📊 3. TÜM YILLAR PANELİ (2022–2026 Bütün Dönem)</span>
-        <span class="sub">Sol Sütun · 1× Kaldıraçsız</span>
+        <span>3. TÜM YILLAR PANELİ (2022–2026)</span>
+        <span class="sub">Sol sütun · 1× kaldıraçsız</span>
       </div>
       <div class="col-banner right-2026">
-        <span>🎯 4. 2026 PANELİ (Yalnızca 2026 Sonuçları)</span>
-        <span class="sub">Sağ Sütun · 1× Kaldıraçsız</span>
+        <span>4. 2026 PANELİ (Yalnızca 2026)</span>
+        <span class="sub">Sağ sütun · 1× kaldıraçsız</span>
       </div>
     </div>
 
@@ -1391,7 +1440,6 @@ footer {
     </footer>
 
   </main>
-</div>
 
 <script src="/plotly.min.js"></script>
 <script src="/pro_data.js"></script>
@@ -1765,7 +1813,8 @@ footer {
 
     var strats = getFilteredStrategies();
     var idx = strats.findIndex(function (x) { return x.id === S.stratId; });
-    el('stepPos').textContent = (idx + 1) + ' / ' + strats.length + ' (' + allCands.length + ' senaryo)';
+    el('stepPos').textContent = (idx + 1) + ' / ' + strats.length;
+    el('scenarioCount').textContent = allCands.length + ' doğrulanmış senaryo · sol tüm yıllar, sağ 2026';
 
     var sHost = el('stratList');
     sHost.innerHTML = strats.map(function (g, i) {
@@ -1815,7 +1864,7 @@ footer {
       var sd = getSplitData(st);
       var lbl = st.kind === 'temel' ? 'Filtresiz (Temel)' : st.kind.replace('varyant', 'Senaryo ') + (st.in93 ? ' ★' : '');
       return '<div class="var-item' + (st.key === S.stateKey ? ' on' : '') + '" data-key="' + esc(st.key) + '">' +
-        '<div class="var-r1"><span>' + esc(lbl) + '</span><span style="color:var(--pos-bright);font-family:var(--font-mono)">' + fmtUnitVal(sd.all.net, 0) + '</span></div>' +
+        '<div class="var-r1"><span>' + esc(lbl) + '</span><span style="color:var(--green);font-family:monospace">' + fmtUnitVal(sd.all.net, 0) + '</span></div>' +
         '<div class="var-r2">' + esc(st.ad) + ' · 2026: ' + fmtUnitVal(sd.y26.net, 0) + '</div>' +
       '</div>';
     }).join('');
@@ -1868,7 +1917,7 @@ footer {
         var isOn = activeSet.has(f.k);
         return '<div class="sw-row' + (isOn ? ' on' : '') + '" data-fk="' + esc(f.k) + '">' +
           '<div class="sw-info">' +
-            '<div class="sw-title">' + esc(f.title) + ' <span style="color:var(--dim);font-family:var(--font-mono);font-size:10.5px">[' + esc(f.k) + ']</span></div>' +
+            '<div class="sw-title">' + esc(f.title) + ' <span style="color:var(--muted);font-family:monospace;font-size:10.5px">[' + esc(f.k) + ']</span></div>' +
             '<div class="sw-desc">' + esc(f.desc) + '</div>' +
           '</div>' +
           '<div class="sw-toggle" role="switch" aria-checked="' + isOn + '"></div>' +
@@ -1907,10 +1956,10 @@ footer {
     var keepRatio = baseSd.all.n ? (sd.all.n / baseSd.all.n) * 100 : 100;
 
     el('deltaStrip').innerHTML =
-      '<div class="delta-item"><div class="dl">Tüm Yıllar Net Δ</div><div class="dv" style="color:' + (diffAll >= 0 ? 'var(--pos-bright)' : 'var(--neg-bright)') + '">' + fmtUnitVal(diffAll, 0) + '</div></div>' +
-      '<div class="delta-item"><div class="dl">2026 Net Δ</div><div class="dv" style="color:' + (diff26 >= 0 ? 'var(--pos-bright)' : 'var(--neg-bright)') + '">' + fmtUnitVal(diff26, 0) + '</div></div>' +
-      '<div class="delta-item"><div class="dl">Ort. Net R Δ</div><div class="dv" style="color:' + (diffAvg >= 0 ? 'var(--pos-bright)' : 'var(--neg-bright)') + '">' + (diffAvg >= 0 ? '+' : '') + diffAvg.toFixed(2) + '%</div></div>' +
-      '<div class="delta-item"><div class="dl">Korunan İşlem</div><div class="dv" style="color:var(--acc)">%' + keepRatio.toFixed(1) + ' (' + nf(sd.all.n) + ')</div></div>';
+      '<div class="delta-item"><div class="dl">Tüm Yıllar Δ</div><div class="dv" style="color:' + (diffAll >= 0 ? 'var(--green)' : 'var(--red)') + '">' + fmtUnitVal(diffAll, 0) + '</div></div>' +
+      '<div class="delta-item"><div class="dl">2026 Δ</div><div class="dv" style="color:' + (diff26 >= 0 ? 'var(--green)' : 'var(--red)') + '">' + fmtUnitVal(diff26, 0) + '</div></div>' +
+      '<div class="delta-item"><div class="dl">Ort. R Δ</div><div class="dv" style="color:' + (diffAvg >= 0 ? 'var(--green)' : 'var(--red)') + '">' + (diffAvg >= 0 ? '+' : '') + diffAvg.toFixed(2) + '%</div></div>' +
+      '<div class="delta-item"><div class="dl">Korunan İşlem</div><div class="dv" style="color:var(--blue)">%' + keepRatio.toFixed(1) + ' (' + nf(sd.all.n) + ')</div></div>';
   }
 
   function toggleFilterSwitch(fk, cellStates) {
@@ -1979,22 +2028,22 @@ footer {
 
   function layoutBase(extra) {
     var lay = {
-      paper_bgcolor: 'rgba(0,0,0,0)',
-      plot_bgcolor: 'rgba(10,16,27,0.68)',
+      paper_bgcolor: '#101d2b',
+      plot_bgcolor: '#101d2b',
       font: {
-        family: "'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif",
-        size: 12,
-        color: '#dbe6f7',
+        family: 'Inter, Segoe UI, Arial, sans-serif',
+        size: 11,
+        color: '#aac0ce',
       },
       margin: { l: 54, r: 20, t: 24, b: 40 },
       xaxis: {
-        gridcolor: 'rgba(33,49,77,0.52)',
-        zerolinecolor: '#364d73',
+        gridcolor: '#26384a',
+        zerolinecolor: '#3b5267',
         tickfont: { size: 11, color: '#9fb0cc' },
       },
       yaxis: {
-        gridcolor: 'rgba(33,49,77,0.52)',
-        zerolinecolor: '#47628f',
+        gridcolor: '#26384a',
+        zerolinecolor: '#3b5267',
         zerolinewidth: 1.4,
         tickfont: { size: 11, color: '#9fb0cc' },
       },
@@ -2002,14 +2051,14 @@ footer {
         orientation: 'h',
         x: 0,
         y: 1.13,
-        font: { size: 11.5, color: '#dbe6f7' },
+        font: { size: 11, color: '#91a6b6' },
         bgcolor: 'rgba(0,0,0,0)',
       },
       hovermode: 'x unified',
       hoverlabel: {
-        bgcolor: '#0b1322',
-        bordercolor: '#38bdf8',
-        font: { family: "'Plus Jakarta Sans', sans-serif", size: 12, color: '#f1f5f9' },
+        bgcolor: '#142334',
+        bordercolor: '#376282',
+        font: { family: 'Inter, Segoe UI, Arial, sans-serif', size: 11.5, color: '#e8f0f4' },
       },
     };
     if (extra) {
@@ -2041,14 +2090,14 @@ footer {
         y: yPos,
         type: 'bar',
         name: 'Brüt Kâr (+' + uLbl.trim() + ')',
-        marker: { color: '#10b981' },
+        marker: { color: '#46d49a' },
       },
       {
         x: labels,
         y: yNeg,
         type: 'bar',
         name: 'Brüt Zarar (-' + uLbl.trim() + ')',
-        marker: { color: '#f43f5e' },
+        marker: { color: '#ff6f7d' },
       },
       {
         x: labels,
@@ -2057,8 +2106,8 @@ footer {
         type: 'scatter',
         mode: 'lines+markers',
         name: 'Net Sonuç (' + uLbl.trim() + ')',
-        line: { color: '#fbbf24', width: 2.2 },
-        marker: { size: 7, symbol: 'diamond', color: '#fbbf24' },
+        line: { color: '#f2c674', width: 2.2 },
+        marker: { size: 7, symbol: 'diamond', color: '#f2c674' },
       },
     ], layoutBase({
       barmode: 'relative',
@@ -2100,7 +2149,7 @@ footer {
         mode: 'lines',
         name: 'Kümülatif Net Özsermaye (' + uLbl.trim() + ')',
         fill: 'tozeroy',
-        fillcolor: colorLine === '#10b981' ? 'rgba(16,185,129,0.14)' : 'rgba(251,191,36,0.14)',
+        fillcolor: colorLine === '#46d49a' ? 'rgba(70,212,154,0.14)' : 'rgba(242,198,116,0.14)',
         line: { color: colorLine, width: 2.5 },
       },
     ], layoutBase({
@@ -2115,8 +2164,8 @@ footer {
         mode: 'lines',
         name: 'Drawdown (' + uLbl.trim() + ')',
         fill: 'tozeroy',
-        fillcolor: 'rgba(244,63,94,0.22)',
-        line: { color: '#f43f5e', width: 2 },
+        fillcolor: 'rgba(255,111,125,0.2)',
+        line: { color: '#ff6f7d', width: 2 },
       },
     ], layoutBase({
       yaxis: { title: 'Zirveden Düşüş (' + uLbl.trim() + ')' },
@@ -2129,7 +2178,7 @@ footer {
     var cellStates = getCellStates(st.id, st.tf);
     var m = unitMult();
     var uLbl = unitSuffix();
-    var palette = ['#94a3b8', '#38bdf8', '#a855f7', '#f59e0b', '#10b981'];
+    var palette = ['#91a6b6', '#6caaff', '#b48df2', '#f59e0b', '#46d49a'];
 
     var ordered = cellStates.filter(function (cs) {
       return !cs.isSingle && (cs.kind === 'temel' || isStatePosBoth(cs));
@@ -2158,7 +2207,7 @@ footer {
           mode: 'lines',
           name: lbl + (isSel ? ' [SEÇİLİ]' : ''),
           line: {
-            color: isSel ? '#22c55e' : (isBase ? '#f43f5e' : palette[idx % palette.length]),
+            color: isSel ? '#46d49a' : (isBase ? '#ff6f7d' : palette[idx % palette.length]),
             width: isSel ? 3 : (isBase ? 2.2 : 1.7),
             dash: isBase ? 'dot' : 'solid',
           },
@@ -2198,15 +2247,15 @@ footer {
     var r365 = rollingSum(365);
 
     Plotly.react('cRoll_all', [
-      { x: DATE_STRS, y: Array.from(r30), type: 'scatter', mode: 'lines', name: '30 Günlük Net', line: { color: '#38bdf8', width: 1.5 } },
-      { x: DATE_STRS, y: Array.from(r90), type: 'scatter', mode: 'lines', name: '90 Günlük Net', line: { color: '#10b981', width: 2.1 } },
-      { x: DATE_STRS, y: Array.from(r365), type: 'scatter', mode: 'lines', name: '365 Günlük Net', line: { color: '#fbbf24', width: 2.5 } },
+      { x: DATE_STRS, y: Array.from(r30), type: 'scatter', mode: 'lines', name: '30 Günlük Net', line: { color: '#6caaff', width: 1.5 } },
+      { x: DATE_STRS, y: Array.from(r90), type: 'scatter', mode: 'lines', name: '90 Günlük Net', line: { color: '#46d49a', width: 2.1 } },
+      { x: DATE_STRS, y: Array.from(r365), type: 'scatter', mode: 'lines', name: '365 Günlük Net', line: { color: '#f2c674', width: 2.5 } },
     ], layoutBase({ yaxis: { title: 'Hareketli Net (' + uLbl.trim() + ')' } }), PLOT_CFG);
 
     Plotly.react('cRoll_26', [
-      { x: DATES_2026, y: Array.from(r30.slice(IDX_2026)), type: 'scatter', mode: 'lines', name: '30 Günlük Net', line: { color: '#38bdf8', width: 1.8 } },
-      { x: DATES_2026, y: Array.from(r90.slice(IDX_2026)), type: 'scatter', mode: 'lines', name: '90 Günlük Net', line: { color: '#10b981', width: 2.3 } },
-      { x: DATES_2026, y: Array.from(r365.slice(IDX_2026)), type: 'scatter', mode: 'lines', name: '365 Günlük Net', line: { color: '#fbbf24', width: 2.6 } },
+      { x: DATES_2026, y: Array.from(r30.slice(IDX_2026)), type: 'scatter', mode: 'lines', name: '30 Günlük Net', line: { color: '#6caaff', width: 1.8 } },
+      { x: DATES_2026, y: Array.from(r90.slice(IDX_2026)), type: 'scatter', mode: 'lines', name: '90 Günlük Net', line: { color: '#46d49a', width: 2.3 } },
+      { x: DATES_2026, y: Array.from(r365.slice(IDX_2026)), type: 'scatter', mode: 'lines', name: '365 Günlük Net', line: { color: '#f2c674', width: 2.6 } },
     ], layoutBase({ yaxis: { title: '2026 Hareketli Net (' + uLbl.trim() + ')' } }), PLOT_CFG);
   }
 
@@ -2223,8 +2272,8 @@ footer {
         nArr[i] = -Math.round(sideObj.dayNeg[i] * m * 100) / 100;
       }
       Plotly.react(domId, [
-        { x: sideObj.dates, y: pArr, type: 'bar', name: 'Günlük Kâr (+' + uLbl.trim() + ')', marker: { color: '#10b981' } },
-        { x: sideObj.dates, y: nArr, type: 'bar', name: 'Günlük Zarar (-' + uLbl.trim() + ')', marker: { color: '#f43f5e' } },
+        { x: sideObj.dates, y: pArr, type: 'bar', name: 'Günlük Kâr (+' + uLbl.trim() + ')', marker: { color: '#46d49a' } },
+        { x: sideObj.dates, y: nArr, type: 'bar', name: 'Günlük Zarar (-' + uLbl.trim() + ')', marker: { color: '#ff6f7d' } },
       ], layoutBase({
         barmode: 'relative',
         bargap: gap,
@@ -2250,9 +2299,9 @@ footer {
       var wNet = wKeys.map(function (k) { var r = wMap.get(k); return Math.round((r.p - r.ng) * m * 10) / 10; });
 
       Plotly.react(domId, [
-        { x: wKeys, y: wPos, type: 'bar', name: 'Haftalık Kâr (+' + uLbl.trim() + ')', marker: { color: '#10b981' } },
-        { x: wKeys, y: wNeg, type: 'bar', name: 'Haftalık Zarar (-' + uLbl.trim() + ')', marker: { color: '#f43f5e' } },
-        { x: wKeys, y: wNet, type: 'scatter', mode: 'lines', name: 'Haftalık Net', line: { color: '#fbbf24', width: 1.8 } },
+        { x: wKeys, y: wPos, type: 'bar', name: 'Haftalık Kâr (+' + uLbl.trim() + ')', marker: { color: '#46d49a' } },
+        { x: wKeys, y: wNeg, type: 'bar', name: 'Haftalık Zarar (-' + uLbl.trim() + ')', marker: { color: '#ff6f7d' } },
+        { x: wKeys, y: wNet, type: 'scatter', mode: 'lines', name: 'Haftalık Net', line: { color: '#f2c674', width: 1.8 } },
       ], layoutBase({
         barmode: 'relative',
         yaxis: { title: 'Haftalık Kâr/Zarar (' + uLbl.trim() + ')' },
@@ -2306,7 +2355,7 @@ footer {
       [0.38, '#881337'],
       [0.5, '#1e293b'],
       [0.62, '#065f46'],
-      [1, '#10b981'],
+      [1, '#46d49a'],
     ];
 
     Plotly.react('cCal_all', [{
@@ -2364,7 +2413,7 @@ footer {
           y: counts,
           type: 'bar',
           name: 'İşlem Sayısı',
-          marker: { color: '#38bdf8' },
+          marker: { color: '#6caaff' },
           text: counts.map(function (c) { return nf(c); }),
           textposition: 'outside',
           cliponaxis: false,
@@ -2376,8 +2425,8 @@ footer {
           type: 'scatter',
           mode: 'lines+markers',
           name: 'Kazanma Oranı (%)',
-          line: { color: '#10b981', width: 2.3 },
-          marker: { size: 7, color: '#10b981' },
+          line: { color: '#46d49a', width: 2.3 },
+          marker: { size: 7, color: '#46d49a' },
         },
       ], layoutBase({
         xaxis: { type: 'category' },
@@ -2388,7 +2437,7 @@ footer {
           side: 'right',
           range: [0, 100],
           showgrid: false,
-          tickfont: { color: '#10b981' },
+          tickfont: { color: '#46d49a' },
         },
       }), PLOT_CFG);
     }
@@ -2414,7 +2463,7 @@ footer {
           y: counts,
           type: 'bar',
           name: 'Çıkış Adedi',
-          marker: { color: ['#f43f5e', '#10b981', '#38bdf8', '#a855f7'] },
+          marker: { color: ['#ff6f7d', '#46d49a', '#6caaff', '#b48df2'] },
           text: counts.map(function (c, idx) { return nf(c) + ' (WR %' + wrs[idx] + ')'; }),
           textposition: 'outside',
           cliponaxis: false,
@@ -2453,9 +2502,9 @@ footer {
       var cNet = filtered.map(function (c) { return Math.round(((c[3] - c[4]) / 100) * m * 10) / 10; });
 
       Plotly.react(domId, [
-        { y: names, x: cPos, orientation: 'h', type: 'bar', name: 'Brüt Kâr (+' + uLbl.trim() + ')', marker: { color: '#10b981' } },
-        { y: names, x: cNeg, orientation: 'h', type: 'bar', name: 'Brüt Zarar (-' + uLbl.trim() + ')', marker: { color: '#f43f5e' } },
-        { y: names, x: cNet, orientation: 'h', type: 'scatter', mode: 'markers', name: 'Net Sonuç', marker: { color: '#fbbf24', size: 6.5, symbol: 'diamond' } },
+        { y: names, x: cPos, orientation: 'h', type: 'bar', name: 'Brüt Kâr (+' + uLbl.trim() + ')', marker: { color: '#46d49a' } },
+        { y: names, x: cNeg, orientation: 'h', type: 'bar', name: 'Brüt Zarar (-' + uLbl.trim() + ')', marker: { color: '#ff6f7d' } },
+        { y: names, x: cNet, orientation: 'h', type: 'scatter', mode: 'markers', name: 'Net Sonuç', marker: { color: '#f2c674', size: 6.5, symbol: 'diamond' } },
       ], layoutBase({
         barmode: 'relative',
         hovermode: 'y unified',
@@ -2476,6 +2525,12 @@ footer {
     if (!rowsF.length || !FLT_CAT.length) return;
 
     // [fn, fwr, favg, ftot, n26, wr26, avg26, tot26]
+    function moneyCompact(v) {
+      var a = Math.abs(v);
+      var s = a >= 1e6 ? (a / 1e6).toFixed(2) + 'M' : a >= 1e3 ? (a / 1e3).toFixed(1) + 'K' : a.toFixed(0);
+      return (v >= 0 ? '+$' : '-$') + s;
+    }
+
     function plotFltHeatmap(domId, is2026) {
       var yNames = [];
       var zMatrix = [];
@@ -2512,15 +2567,15 @@ footer {
           (it.n / maxN) * 0.6,
         ]);
         textMatrix.push([
-          (it.tot >= 0 ? '+$' : '-$') + nf(Math.abs(it.tot), 0),
+          moneyCompact(it.tot),
           '%' + it.wr.toFixed(1),
           (it.avg >= 0 ? '+' : '') + it.avg.toFixed(2) + '%',
-          nf(it.n) + ' işl.',
+          nf(it.n),
         ]);
         customMatrix.push(it);
       });
 
-      var xCols = ['20. Toplam Net ($10)', '21. Kazanma Oranı (WR%)', '22. Ortalama R (%)', '23. İşlem Sayısı'];
+      var xCols = ['Toplam<br>Net $', 'Kazanma<br>WR %', 'Ort.<br>R %', 'İşlem<br>Sayısı'];
 
       Plotly.react(domId, [{
         x: xCols,
@@ -2528,22 +2583,22 @@ footer {
         z: zMatrix,
         text: textMatrix,
         texttemplate: '%{text}',
-        textfont: { family: "'JetBrains Mono', monospace", size: 10 },
+        textfont: { family: 'monospace', size: 9.5 },
         type: 'heatmap',
         colorscale: [
           [0, '#be123c'],
           [0.42, '#4c0519'],
           [0.5, '#17253b'],
           [0.58, '#064e3b'],
-          [1, '#10b981'],
+          [1, '#46d49a'],
         ],
         zmin: -1,
         zmax: 1,
         showscale: false,
       }], layoutBase({
-        margin: { l: 175, r: 16, t: 28, b: 30 },
-        xaxis: { type: 'category', side: 'top' },
-        yaxis: { type: 'category', tickfont: { size: 10, color: '#dbe6f7' } },
+        margin: { l: 218, r: 10, t: 54, b: 16 },
+        xaxis: { type: 'category', side: 'top', tickfont: { size: 10, color: '#aac0ce' } },
+        yaxis: { type: 'category', tickfont: { size: 9.5, color: '#c5d5df' } },
         hovermode: 'closest',
       }), PLOT_CFG);
     }
@@ -2562,8 +2617,8 @@ footer {
     renderHeaderAndSwitchBox(sd);
     renderSplitKpis(sd);
 
-    drawEquityAndDrawdownPair('cEq_all', 'cDd_all', sd.all, '#10b981');
-    drawEquityAndDrawdownPair('cEq_26', 'cDd_26', sd.y26, '#fbbf24');
+    drawEquityAndDrawdownPair('cEq_all', 'cDd_all', sd.all, '#46d49a');
+    drawEquityAndDrawdownPair('cEq_26', 'cDd_26', sd.y26, '#f2c674');
     drawFilterCompareRow(sd);
     drawRollingRow(sd);
     drawDailyAndWeeklyRows(sd);
