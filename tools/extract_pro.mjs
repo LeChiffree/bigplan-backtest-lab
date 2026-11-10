@@ -107,7 +107,7 @@ const NRET = 12;
 
 function newYear(withCoin) {
   return {
-    n: 0, w: 0, sumR: 0, sumLog: 0, durSum: 0, sumPos: 0, sumNeg: 0,
+    n: 0, w: 0, sumR: 0, sumLog: 0, durSum: 0, durWin: 0, sumPos: 0, sumNeg: 0,
     coin: withCoin ? new Map() : null,
     dow: new Float64Array(7 * 7),
     month: new Float64Array(12 * 7),
@@ -122,7 +122,7 @@ function newYear(withCoin) {
 }
 function newTierAgg(withCoin) {
   return {
-    n: 0, w: 0, sumR: 0, sumLog: 0, durSum: 0, sumPos: 0, sumNeg: 0,
+    n: 0, w: 0, sumR: 0, sumLog: 0, durSum: 0, durWin: 0, sumPos: 0, sumNeg: 0,
     years: Array.from({ length: NY }, () => newYear(withCoin)),
     dayPos: new Float64Array(GD),
     dayNeg: new Float64Array(GD),
@@ -142,14 +142,14 @@ function addMap(dst, entries) {
 
 function mergeTier(dst, src) {
   dst.n += src.n; dst.w += src.w; dst.sumR += src.sumR; dst.sumLog += src.sumLog;
-  dst.durSum += src.durSum; dst.sumPos += src.sumPos; dst.sumNeg += src.sumNeg;
+  dst.durSum += src.durSum; dst.durWin += src.durWin; dst.sumPos += src.sumPos; dst.sumNeg += src.sumNeg;
   addArr(dst.dayPos, src.dayPos);
   addArr(dst.dayNeg, src.dayNeg);
   addArr(dst.dayCnt, src.dayCnt);
   for (let y = 0; y < NY; y++) {
     const a = dst.years[y], b = src.years[y];
     a.n += b.n; a.w += b.w; a.sumR += b.sumR; a.sumLog += b.sumLog;
-    a.durSum += b.durSum; a.sumPos += b.sumPos; a.sumNeg += b.sumNeg;
+    a.durSum += b.durSum; a.durWin += b.durWin; a.sumPos += b.sumPos; a.sumNeg += b.sumNeg;
     addArr(a.dow, b.dow);
     addArr(a.month, b.month);
     addArr(a.quarter, b.quarter);
@@ -236,7 +236,7 @@ function buildCumulativeSets(tiers) {
 
 function formatYear(Y) {
   return {
-    n: Y.n, w: Y.w, sumR: r3(Y.sumR), sumLog: r3(Y.sumLog), durSum: r2(Y.durSum),
+    n: Y.n, w: Y.w, sumR: r3(Y.sumR), sumLog: r3(Y.sumLog), durSum: r2(Y.durSum), durWin: r2(Y.durWin),
     sumPos: r3(Y.sumPos), sumNeg: r3(Y.sumNeg),
     dow: roundArr(Y.dow, 3),
     month: roundArr(Y.month, 3),
@@ -317,7 +317,7 @@ for (const st of states) {
   const dayNegC = Array.from(allT.dayNeg, (v) => Math.round(v * 100));
 
   const aggAll = {
-    n: allT.n, w: allT.w, sumR: r3(allT.sumR), sumLog: r3(allT.sumLog), durSum: r2(allT.durSum),
+    n: allT.n, w: allT.w, sumR: r3(allT.sumR), sumLog: r3(allT.sumLog), durSum: r2(allT.durSum), durWin: r2(allT.durWin),
     sumPos: r3(allT.sumPos), sumNeg: r3(allT.sumNeg),
     dayPosC,
     dayNegC,

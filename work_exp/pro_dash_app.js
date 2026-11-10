@@ -1183,6 +1183,395 @@
     drawFilterHeatmapRows(sd);
   }
 
+  /* ==================== STRATEJİ × FİLTRE × TF TABLOSU ==================== */
+  var TS = {
+    q: '',
+    tf: 'all',
+    kind: 'all',
+    sortKey: 'score',
+    sortDir: -1,
+    ranges: {},
+  };
+  var TABLE_ROWS = null;
+
+  function buildTableRows() {
+    var rows = [];
+    for (var i = 0; i < STATES.length; i++) {
+      var st = STATES[i];
+      var n = st.agg ? st.agg.n : 0;
+      if (!n) continue;
+      var w = st.agg.w || 0;
+      var l = Math.max(0, n - w);
+      var avgAll = (st.totAvg != null) ? st.totAvg : (st.agg.sumR / n);
+      var avg26 = (st.y26Avg != null) ? st.y26Avg : 0;
+      var winDur = (st.winDurH != null) ? st.winDurH : null;
+      var ratio = (st.winRatio != null) ? st.winRatio : (l > 0 ? w / l : Infinity);
+      var filterLabel = (st.kind === 'temel')
+        ? 'Filtresiz (Temel)'
+        : (st.ad || (st.keyTitles || []).join(' + ') || '—');
+      rows.push({
+        key: st.key,
+        id: st.id,
+        title: st.title,
+        tf: st.tf,
+        kind: st.kind,
+        isBase: st.kind === 'temel',
+        filterLabel: filterLabel,
+        hay: (st.id + ' ' + st.title + ' ' + st.tf + ' ' + filterLabel + ' ' + st.key).toLowerCase(),
+        n: n,
+        w: w,
+        l: l,
+        avgAll: avgAll,
+        avg26: avg26,
+        winDur: winDur,
+        ratio: ratio,
+        ratioCap: 0,
+        score: 0,
+        s2: 0,
+        s4: 0,
+        s5: 0,
+      });
+    }
+
+    var maxRatio = 0;
+    rows.forEach(function (r) {
+      if (isFinite(r.ratio)) maxRatio = Math.max(maxRatio, r.ratio);
+    });
+    rows.forEach(function (r) {
+      r.ratioCap = isFinite(r.ratio) ? r.ratio : maxRatio;
+    });
+
+    function mm(key) {
+      var lo = Infinity, hi = -Infinity;
+      rows.forEach(function (r) {
+        var v = r[key];
+        if (v == null || !isFinite(v)) return;
+        if (v < lo) lo = v;
+        if (v > hi) hi = v;
+      });
+      return { lo: lo, hi: hi };
+    }
+    var m2 = mm('avgAll');
+    var m4 = mm('winDur');
+    var m5 = mm('ratioCap');
+
+    function scale(v, m) {
+      if (v == null || !isFinite(v) || !isFinite(m.lo) || m.hi - m.lo < 1e-12) return 0;
+      var t = (v - m.lo) / (m.hi - m.lo);
+      return Math.max(0, Math.min(1, t));
+    }
+
+    rows.forEach(function (r) {
+      r.s2 = scale(r.avgAll, m2) * 33.3;
+      r.s4 = (1 - scale(r.winDur, m4)) * 33.3; // ters ölçek: kısa süre yüksek puan
+      r.s5 = scale(r.ratioCap, m5) * 33.3;
+      r.score = r.s2 + r.s4 + r.s5;
+    });
+
+    TABLE_ROWS = rows;
+  }
+
+  function tblParseNum(s) {
+    if (s == null) return null;
+    s = String(s).trim().replace(/\s/g, '').replace(',', '.');
+    if (!s) return null;
+    var v = Number(s);
+    return isFinite(v) ? v : null;
+  }
+
+  function tblFilterValue(r, key) {
+    if (key === 'avgAll' || key === 'avg26') return r[key] * 100;
+    if (key === 'ratio') return r.ratioCap;
+    return r[key];
+  }
+
+  function tblMatches(r) {
+    if (TS.tf !== 'all' && r.tf !== TS.tf) return false;
+    if (TS.kind === 'base' && !r.isBase) return false;
+    if (TS.kind === 'filtered' && r.isBase) return false;
+    if (TS.q) {
+      var toks = TS.q.toLowerCase().split(/\s+/).filter(Boolean);
+      for (var i = 0; i < toks.length; i++) if (r.hay.indexOf(toks[i]) < 0) return false;
+    }
+    for (var k in TS.ranges) {
+      var rg = TS.ranges[k];
+      if (!rg) continue;
+      var v = tblFilterValue(r, k);
+      if (v == null || !isFinite(v)) v = -Infinity;
+      if (rg[0] != null && v < rg[0]) return false;
+      if (rg[1] != null && v > rg[1]) return false;
+    }
+    return true;
+  }
+
+  function tblCmp(a, b) {
+    var k = TS.sortKey, d = TS.sortDir;
+    if (k === 'title' || k === 'tf' || k === 'filter') {
+      var sa = k === 'filter' ? a.filterLabel : a[k];
+      var sb = k === 'filter' ? b.filterLabel : b[k];
+      return d * String(sa).localeCompare(String(sb), 'tr');
+    }
+    var va = a[k], vb = b[k];
+    if (k === 'ratio') { va = a.ratioCap; vb = b.ratioCap; }
+    if (va == null || !isFinite(va)) va = -Infinity;
+    if (vb == null || !isFinite(vb)) vb = -Infinity;
+    return d * ((va > vb) - (va < vb));
+  }
+
+  function tblScoreClass(s) {
+    if (s >= 66) return 'hi';
+    if (s >= 33) return 'mid';
+    return 'lo';
+  }
+
+  function tblAvgCell(v) {
+    var cls = v >= 0 ? 'pos' : 'neg';
+    return '<td class="num ' + cls + '">' + fmtPct(v, 2) +
+      '<span class="cell-sub">' + fmtUsd(v * 10, 2) + '</span></td>';
+  }
+
+  function initTableHeader() {
+    var head = el('tblHead');
+    if (!head) return;
+
+    var cols = [
+      { k: 'rank', label: '#', cls: 'idx' },
+      { k: 'title', label: 'Strateji', cls: 'txt' },
+      { k: 'tf', label: 'TF', cls: 'txt' },
+      { k: 'filter', label: 'Filtre', cls: 'txt' },
+      { k: 'n', label: 'İşlem', cls: '' },
+      { k: 'avgAll', label: 'Net / İşlem<br>Tüm Yıllar', cls: '' },
+      { k: 'avg26', label: 'Net / İşlem<br>2026', cls: '' },
+      { k: 'winDur', label: 'Kârlı İşlem<br>Ort. Süre (saat)', cls: '' },
+      { k: 'ratio', label: 'Kârlı / Zararlı', cls: '' },
+      { k: 'score', label: 'Puan<br>(0–99,9)', cls: '' },
+    ];
+
+    var h1 = '<tr>' + cols.map(function (c) {
+      return '<th data-k="' + c.k + '" class="' + c.cls + '">' + c.label + '<span class="arrow">↕</span></th>';
+    }).join('') + '</tr>';
+
+    function pair(k) {
+      return '<div class="fcell">' +
+        '<input class="fnum" data-k="' + k + '" data-b="min" placeholder="min" inputmode="decimal">' +
+        '<input class="fnum" data-k="' + k + '" data-b="max" placeholder="max" inputmode="decimal">' +
+        '</div>';
+    }
+
+    var h2 = '<tr class="filters">' +
+      '<th></th>' +
+      '<th><input class="ftext" id="tblTitleFilter" placeholder="strateji ara…"></th>' +
+      '<th></th>' +
+      '<th><input class="ftext" id="tblFilterFilter" placeholder="filtre ara…"></th>' +
+      '<th>' + pair('n') + '</th>' +
+      '<th>' + pair('avgAll') + '</th>' +
+      '<th>' + pair('avg26') + '</th>' +
+      '<th>' + pair('winDur') + '</th>' +
+      '<th>' + pair('ratio') + '</th>' +
+      '<th>' + pair('score') + '</th>' +
+      '</tr>';
+
+    head.innerHTML = h1 + h2;
+
+    head.querySelectorAll('th[data-k]').forEach(function (th) {
+      th.addEventListener('click', function () {
+        var k = th.getAttribute('data-k');
+        if (k === 'rank') return;
+        if (TS.sortKey === k) TS.sortDir = -TS.sortDir;
+        else {
+          TS.sortKey = k;
+          TS.sortDir = (k === 'title' || k === 'tf' || k === 'filter') ? 1 : -1;
+        }
+        renderTable();
+      });
+    });
+
+    head.querySelectorAll('.fnum').forEach(function (inp) {
+      inp.addEventListener('input', function () {
+        var k = inp.getAttribute('data-k');
+        var b = inp.getAttribute('data-b');
+        var v = tblParseNum(inp.value);
+        if (!TS.ranges[k]) TS.ranges[k] = [null, null];
+        TS.ranges[k][b === 'min' ? 0 : 1] = v;
+        renderTable();
+      });
+    });
+
+    var tfEl = el('tblTitleFilter');
+    var ffEl = el('tblFilterFilter');
+    if (tfEl) tfEl.addEventListener('input', function () { applyTblSearch(); });
+    if (ffEl) ffEl.addEventListener('input', function () { applyTblSearch(); });
+
+    function applyTblSearch() {
+      var a = (el('tblTitleFilter') || {}).value || '';
+      var b = (el('tblFilterFilter') || {}).value || '';
+      TS.q = (a + ' ' + b).trim();
+      renderTable();
+    }
+
+    var hh = head.querySelector('tr').getBoundingClientRect().height;
+    head.querySelectorAll('tr.filters th').forEach(function (th) {
+      th.style.top = Math.max(30, Math.round(hh - 1)) + 'px';
+    });
+  }
+
+  function layoutTableHeader() {
+    var head = el('tblHead');
+    if (!head) return;
+    var hh = head.querySelector('tr').getBoundingClientRect().height;
+    if (hh > 0) {
+      head.querySelectorAll('tr.filters th').forEach(function (th) {
+        th.style.top = Math.max(30, Math.round(hh - 1)) + 'px';
+      });
+    }
+  }
+
+  function initTableControls() {
+    var s = el('tblSearch');
+    if (s) s.addEventListener('input', function () { TS.q = s.value.trim(); renderTable(); });
+    var tf = el('tblTf');
+    if (tf) tf.addEventListener('change', function () { TS.tf = tf.value; renderTable(); });
+    var kind = el('tblKind');
+    if (kind) kind.addEventListener('change', function () { TS.kind = kind.value; renderTable(); });
+
+    var reset = el('tblReset');
+    if (reset) reset.addEventListener('click', function () {
+      TS.q = ''; TS.tf = 'all'; TS.kind = 'all'; TS.ranges = {};
+      TS.sortKey = 'score'; TS.sortDir = -1;
+      if (s) s.value = '';
+      if (tf) tf.value = 'all';
+      if (kind) kind.value = 'all';
+      document.querySelectorAll('#tblHead .fnum, #tblHead .ftext').forEach(function (i) { i.value = ''; });
+      renderTable();
+    });
+
+    var csv = el('tblCsv');
+    if (csv) csv.addEventListener('click', downloadTableCsv);
+  }
+
+  function renderTable() {
+    if (!TABLE_ROWS) buildTableRows();
+    var body = el('tblBody');
+    var meta = el('tblMeta');
+    if (!body) return;
+
+    var rows = TABLE_ROWS.filter(tblMatches);
+    rows.sort(tblCmp);
+
+    var head = el('tblHead');
+    if (head) {
+      head.querySelectorAll('th[data-k]').forEach(function (th) {
+        var k = th.getAttribute('data-k');
+        th.classList.toggle('sorted', k === TS.sortKey);
+        var ar = th.querySelector('.arrow');
+        if (ar) ar.textContent = (k === TS.sortKey) ? (TS.sortDir > 0 ? '▲' : '▼') : '↕';
+      });
+    }
+
+    var html = rows.map(function (r, i) {
+      var durCell = (r.winDur == null)
+        ? '<td class="num">—</td>'
+        : '<td class="num">' + nf(r.winDur, 1) + ' sa' +
+          '<span class="cell-sub">' + (r.winDur / 24 >= 2 ? nf(r.winDur / 24, 1) + ' gün' : '') + '</span></td>';
+      var ratioTxt = isFinite(r.ratio) ? nf(r.ratio, 2) : '∞';
+      return '<tr>' +
+        '<td class="idx">' + (i + 1) + '</td>' +
+        '<td class="txt strat-cell"><b>' + esc(r.title) + '</b><span class="cell-sub">' + esc(r.id.toUpperCase()) + '</span></td>' +
+        '<td class="txt"><span class="tf-badge">' + esc(r.tf) + '</span></td>' +
+        '<td class="txt">' + (r.isBase
+          ? '<span class="filter-pill base">Filtresiz</span>'
+          : '<span class="filter-pill">' + esc(r.filterLabel) + '</span>') + '</td>' +
+        '<td class="num">' + nf(r.n) + '</td>' +
+        tblAvgCell(r.avgAll) +
+        tblAvgCell(r.avg26) +
+        durCell +
+        '<td class="num">' + nf(r.w) + ' / ' + nf(r.l) + ' - ' + ratioTxt + '</td>' +
+        '<td class="num"><span class="score-pill ' + tblScoreClass(r.score) + '" title="2. kategori: ' +
+          r.s2.toFixed(1) + ' · 4. kategori: ' + r.s4.toFixed(1) + ' · 5. kategori: ' + r.s5.toFixed(1) +
+          '">' + nf(r.score, 1) + '</span></td>' +
+        '</tr>';
+    }).join('');
+
+    body.innerHTML = html || '<tr><td colspan="10" style="text-align:center;padding:28px;color:var(--muted)">Bu filtrelerle satır bulunamadı.</td></tr>';
+
+    if (meta) {
+      var sortLbl = { score: 'Puan', n: 'İşlem', avgAll: 'Tüm Yıllar Net/İşlem', avg26: '2026 Net/İşlem', winDur: 'Kârlı Süre', ratio: 'Kârlı/Zararlı', title: 'Strateji', tf: 'TF', filter: 'Filtre' }[TS.sortKey] || TS.sortKey;
+      meta.innerHTML = '<span><b>' + nf(rows.length) + ' / ' + nf(TABLE_ROWS.length) + '</b> satır</span>' +
+        '<span>Sıralama: <b>' + esc(sortLbl) + ' ' + (TS.sortDir > 0 ? '↑' : '↓') + '</b></span>' +
+        '<span>Min–max ölçeği ' + nf(TABLE_ROWS.length) + ' satırın tamamından hesaplandı</span>';
+    }
+  }
+
+  function downloadTableCsv() {
+    if (!TABLE_ROWS) buildTableRows();
+    var rows = TABLE_ROWS.filter(tblMatches);
+    rows.sort(tblCmp);
+    var head = ['Strateji', 'ID', 'TF', 'Filtre', 'Islem', 'Net/Islem Tum Yillar (%)', 'Net/Islem 2026 (%)', 'Karli Ort Sure (saat)', 'Karli', 'Zararli', 'Karli/Zararli', 'Puan'];
+    function cs(v, d) { return Number(v).toFixed(d == null ? 2 : d).replace('.', ','); }
+    var lines = [head.join(';')];
+    rows.forEach(function (r) {
+      lines.push([
+        '"' + String(r.title).replace(/"/g, '""') + '"',
+        r.id,
+        r.tf,
+        '"' + String(r.filterLabel).replace(/"/g, '""') + '"',
+        r.n,
+        cs(r.avgAll * 100),
+        cs(r.avg26 * 100),
+        r.winDur == null ? '' : cs(r.winDur, 1),
+        r.w,
+        r.l,
+        isFinite(r.ratio) ? cs(r.ratio) : 'inf',
+        cs(r.score, 1),
+      ].join(';'));
+    });
+    var blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'pro_strateji_filtre_tf.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+  }
+
+  function initTabs() {
+    var btns = document.querySelectorAll('.tab-btn');
+    btns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var tab = btn.getAttribute('data-tab');
+        btns.forEach(function (b) {
+          var on = b === btn;
+          b.classList.toggle('on', on);
+          b.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        var pa = el('panelAnalyze'), pt = el('panelTable');
+        if (pa) pa.hidden = tab !== 'analyze';
+        if (pt) pt.hidden = tab !== 'table';
+        if (tab === 'table') {
+          renderTable();
+          layoutTableHeader();
+        } else {
+          requestAnimationFrame(function () {
+            window.dispatchEvent(new Event('resize'));
+            document.querySelectorAll('.plot-box').forEach(function (d) {
+              if (window.Plotly && d.data) Plotly.Plots.resize(d);
+            });
+          });
+        }
+      });
+    });
+  }
+
+  function initTable() {
+    if (!el('tblHead')) return;
+    buildTableRows();
+    initTableHeader();
+    initTableControls();
+    renderTable();
+    initTabs();
+  }
+
   function initEvents() {
     el('prevStrat').addEventListener('click', function () {
       var strats = getFilteredStrategies();
@@ -1215,4 +1604,5 @@
 
   initEvents();
   renderAll();
+  initTable();
 })();

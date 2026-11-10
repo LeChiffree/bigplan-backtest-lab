@@ -69,7 +69,7 @@ function retBinOf(r) {
 // Kova stride = 7: [n, w, sumR, sumLog, durSum, sumPos, sumNeg]
 function newYear(withCoin) {
   return {
-    n: 0, w: 0, sumR: 0, sumLog: 0, durSum: 0, sumPos: 0, sumNeg: 0,
+    n: 0, w: 0, sumR: 0, sumLog: 0, durSum: 0, durWin: 0, sumPos: 0, sumNeg: 0,
     coin: withCoin ? new Map() : null,
     dow: new Float64Array(7 * 7),
     month: new Float64Array(12 * 7),
@@ -85,7 +85,7 @@ function newYear(withCoin) {
 
 function newTierAgg(withCoin) {
   return {
-    n: 0, w: 0, sumR: 0, sumLog: 0, durSum: 0, sumPos: 0, sumNeg: 0,
+    n: 0, w: 0, sumR: 0, sumLog: 0, durSum: 0, durWin: 0, sumPos: 0, sumNeg: 0,
     years: Array.from({ length: NY }, () => newYear(withCoin)),
     dayPos: new Float64Array(GD),
     dayNeg: new Float64Array(GD),
@@ -177,12 +177,14 @@ class ProTracker {
 
     const T = this.T;
     T.n++; T.w += win; T.sumR += r; T.sumLog += lr; T.durSum += durH; T.sumPos += pos; T.sumNeg += neg;
+    if (win) T.durWin += durH;
     T.dayPos[gd] += pos;
     T.dayNeg[gd] += neg;
     T.dayCnt[gd]++;
 
     const Y = T.years[y];
     Y.n++; Y.w += win; Y.sumR += r; Y.sumLog += lr; Y.durSum += durH; Y.sumPos += pos; Y.sumNeg += neg;
+    if (win) Y.durWin += durH;
 
     addB7(Y.dow, dow, r, lr, durH, pos, neg);
     addB7(Y.month, mon, r, lr, durH, pos, neg);
@@ -276,7 +278,7 @@ for (let si = 0; si < symbols.length; si++) {
 
 function serYear(Y) {
   return {
-    n: Y.n, w: Y.w, sumR: Y.sumR, sumLog: Y.sumLog, durSum: Y.durSum, sumPos: Y.sumPos, sumNeg: Y.sumNeg,
+    n: Y.n, w: Y.w, sumR: Y.sumR, sumLog: Y.sumLog, durSum: Y.durSum, durWin: Y.durWin, sumPos: Y.sumPos, sumNeg: Y.sumNeg,
     coin: Y.coin ? [...Y.coin.entries()] : null,
     dow: Array.from(Y.dow),
     month: Array.from(Y.month),
@@ -292,7 +294,7 @@ function serYear(Y) {
 
 function serTier(T) {
   return {
-    n: T.n, w: T.w, sumR: T.sumR, sumLog: T.sumLog, durSum: T.durSum, sumPos: T.sumPos, sumNeg: T.sumNeg,
+    n: T.n, w: T.w, sumR: T.sumR, sumLog: T.sumLog, durSum: T.durSum, durWin: T.durWin, sumPos: T.sumPos, sumNeg: T.sumNeg,
     years: T.years.map(serYear),
     dayPos: Array.from(T.dayPos),
     dayNeg: Array.from(T.dayNeg),

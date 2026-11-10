@@ -130,6 +130,13 @@ ${css}
     <h1>Filtre Laboratuvarı PRO</h1>
     <p class="sub">42 metot · 520 USDT perpetual sembol · 224 doğrulanmış senaryo · işlem başı 10 USDT · azami 1× kaldıraç · ücret, kayma ve tarihsel funding dahil</p>
 
+    <div class="tabs" role="tablist">
+      <button class="tab-btn on" data-tab="analyze" role="tab" aria-selected="true">Analiz Paneli</button>
+      <button class="tab-btn" data-tab="table" role="tab" aria-selected="false">Strateji × Filtre × TF Tablosu <span class="tab-count">563</span></button>
+    </div>
+
+    <div id="panelAnalyze" class="tab-panel">
+
     <!-- ÜST STRATEJİ ÖZETİ + SAĞ SWITCH BOX -->
     <div class="hero-grid">
       <div class="strat-hero">
@@ -364,6 +371,49 @@ ${css}
       Ekran tam ortadan ikiye bölünmüştür: <b>Sol sütun (3. Tüm Yıllar Paneli)</b> seçilen metodun 2022–2026 bütün dönem sonuçlarını, <b>Sağ sütun (4. 2026 Paneli)</b> ise yalnızca 2026 sonuçlarını birebir aynı metrik ve grafik hizasıyla gösterir.
       Yüksek zaman dilimindeki çıkışlar bar içi alt mumlarla çözülür (<b>24</b>); aynı mumda SL ve TP görülürse korumacı şekilde SL önce uygulanır (<b>25</b>); bütün sonuçlar azami <b>1× kaldıraçsız</b> hesaplanır (<b>26</b>). Eğitim ve araştırma amaçlıdır, yatırım tavsiyesi değildir.
     </footer>
+
+    </div><!-- /panelAnalyze -->
+
+    <!-- ===================== TABLO SEKMESİ ===================== -->
+    <div id="panelTable" class="tab-panel" hidden>
+      <div class="table-toolbar">
+        <div>
+          <h2>Strateji × Filtre × Timeframe Tablosu</h2>
+          <p class="note">Her satır tek bir strateji + filtre + zaman dilimi kombinasyonudur. Sütun başlığına tıklayarak büyükten küçüğe / küçükten büyüğe sırala; başlığın altındaki min–max kutularıyla Excel gibi aralık filtrele.</p>
+        </div>
+        <div class="table-actions">
+          <input class="input tbl-search" id="tblSearch" type="search" placeholder="Strateji veya filtre ara…" autocomplete="off">
+          <select class="select tbl-tf" id="tblTf">
+            <option value="all">Tüm TF</option>
+            <option value="1h">1h</option>
+            <option value="4h">4h</option>
+            <option value="1d">1d</option>
+            <option value="1w">1w</option>
+          </select>
+          <select class="select tbl-kind" id="tblKind">
+            <option value="all">Tüm satırlar</option>
+            <option value="filtered">Sadece filtreli</option>
+            <option value="base">Sadece filtresiz</option>
+          </select>
+          <button class="btn-step" id="tblCsv">CSV indir</button>
+          <button class="btn-step" id="tblReset">Filtreleri sıfırla</button>
+        </div>
+      </div>
+
+      <div class="table-meta" id="tblMeta"></div>
+
+      <div class="table-scroll">
+        <table class="data-table" id="tbl">
+          <thead id="tblHead"></thead>
+          <tbody id="tblBody"></tbody>
+        </table>
+      </div>
+
+      <div class="table-legend">
+        <b>Puan (0–99,9):</b> (2) tüm yıllar işlem başı net getiri min–max ölçeğinde 0–33,3 · (4) kârlı işlemlerin ortalama kalış süresi ters min–max ölçeğinde 0–33,3 · (5) kârlı/zararlı işlem oranı min–max ölçeğinde 0–33,3. Üç kategori toplanır.
+        <br>Net/İşlem değerleri 1× kaldıraçsız oransal getiridir; altındaki küçük değer $10 sabit işlem karşılığıdır. Süreler saat cinsindendir. Bu tablo eğitim/araştırma amaçlıdır, yatırım tavsiyesi değildir.
+      </div>
+    </div>
 
   </main>
 

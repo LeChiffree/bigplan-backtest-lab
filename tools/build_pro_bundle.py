@@ -172,6 +172,8 @@ for st in D["states"]:
     st["payoff"] = round(payoff, 2)
     st["exp10"] = round(tot_avg * 10.0, 3)
     st["exp10_26"] = round(y26_avg * 10.0, 3)
+    st["winDurH"] = round((float(agg.get("durWin") or 0.0)) / w_tot, 2) if w_tot > 0 else None
+    st["winRatio"] = round(w_tot / l_tot, 4) if l_tot > 0 else None
 
     agg["years"] = [pack_year(Y) for Y in agg["years"]]
     # coins: [ci, n, w, posC, negC, durHours]
