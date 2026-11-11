@@ -1129,6 +1129,62 @@ main.main > .sub {
   color: var(--red);
 }
 
+/* --- Chosen kolonu ve seçim --- */
+.data-table thead th.chk {
+  text-align: center;
+  width: 62px;
+  cursor: pointer;
+}
+
+.data-table tbody td.chk-cell {
+  text-align: center;
+  width: 62px;
+  padding: 4px 6px;
+}
+
+.chk-chosen {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--blue);
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.data-table tbody tr.picked td {
+  background: rgba(108, 170, 255, 0.11);
+}
+
+.data-table tbody tr.picked:hover td {
+  background: rgba(108, 170, 255, 0.17);
+}
+
+.mini-btn {
+  background: #16293b;
+  border: 1px solid #34475a;
+  color: var(--muted);
+  border-radius: 6px;
+  padding: 3px 9px;
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.mini-btn:hover {
+  color: var(--red);
+  border-color: rgba(255, 111, 125, 0.55);
+  background: rgba(255, 111, 125, 0.1);
+}
+
+#chosenTbl thead th {
+  cursor: default;
+}
+
+#chosenTbl thead th:hover {
+  background: #192b3d;
+  color: #a9c0cf;
+}
+
 .table-legend {
   margin-top: 12px;
   padding: 12px 14px;

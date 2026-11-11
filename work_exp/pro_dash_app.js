@@ -1191,8 +1191,39 @@
     sortKey: 'score',
     sortDir: -1,
     ranges: {},
+    chosen: new Set(),
   };
   var TABLE_ROWS = null;
+
+  function chosenLoad() {
+    try {
+      var a = JSON.parse(localStorage.getItem('pro_chosen_v1') || '[]');
+      TS.chosen = new Set(Array.isArray(a) ? a : []);
+    } catch (e) {
+      TS.chosen = new Set();
+    }
+    // Veri yenilendiğinde kaybolan anahtarları temizle
+    if (TABLE_ROWS) {
+      var live = Object.create(null);
+      TABLE_ROWS.forEach(function (r) { live[r.key] = 1; });
+      var changed = false;
+      TS.chosen.forEach(function (k) {
+        if (!live[k]) { TS.chosen.delete(k); changed = true; }
+      });
+      if (changed) chosenSave();
+    }
+  }
+
+  function chosenSave() {
+    try {
+      localStorage.setItem('pro_chosen_v1', JSON.stringify(Array.from(TS.chosen)));
+    } catch (e) { /* storage kapalı olabilir */ }
+  }
+
+  function updateChosenBadge() {
+    var b = el('chosenTabCount');
+    if (b) b.textContent = TS.chosen.size;
+  }
 
   function buildTableRows() {
     var rows = [];
@@ -1306,6 +1337,11 @@
 
   function tblCmp(a, b) {
     var k = TS.sortKey, d = TS.sortDir;
+    if (k === 'chosen') {
+      var ca = TS.chosen.has(a.key) ? 1 : 0;
+      var cb = TS.chosen.has(b.key) ? 1 : 0;
+      return d * (ca - cb);
+    }
     if (k === 'title' || k === 'tf' || k === 'filter') {
       var sa = k === 'filter' ? a.filterLabel : a[k];
       var sb = k === 'filter' ? b.filterLabel : b[k];
@@ -1335,6 +1371,7 @@
     if (!head) return;
 
     var cols = [
+      { k: 'chosen', label: 'Chosen', cls: 'chk' },
       { k: 'rank', label: '#', cls: 'idx' },
       { k: 'title', label: 'Strateji', cls: 'txt' },
       { k: 'tf', label: 'TF', cls: 'txt' },
@@ -1359,6 +1396,7 @@
     }
 
     var h2 = '<tr class="filters">' +
+      '<th></th>' +
       '<th></th>' +
       '<th><input class="ftext" id="tblTitleFilter" placeholder="strateji ara…"></th>' +
       '<th></th>' +
@@ -1449,6 +1487,40 @@
     if (csv) csv.addEventListener('click', downloadTableCsv);
   }
 
+  function tblRowHtml(r, i, opts) {
+    opts = opts || {};
+    var durCell = (r.winDur == null)
+      ? '<td class="num">—</td>'
+      : '<td class="num">' + nf(r.winDur, 1) + ' sa' +
+        '<span class="cell-sub">' + (r.winDur / 24 >= 2 ? nf(r.winDur / 24, 1) + ' gün' : '') + '</span></td>';
+    var ratioTxt = isFinite(r.ratio) ? nf(r.ratio, 2) : '∞';
+    var pick = TS.chosen.has(r.key);
+    var chosenCell = opts.chosen
+      ? '<td class="chk-cell"><input type="checkbox" class="chk-chosen" data-key="' + esc(r.key) + '"' + (pick ? ' checked' : '') + ' aria-label="Chosen"></td>'
+      : '';
+    var removeCell = opts.remove
+      ? '<td class="num"><button class="mini-btn chk-remove" data-key="' + esc(r.key) + '">Kaldır</button></td>'
+      : '';
+    return '<tr' + (pick ? ' class="picked"' : '') + '>' +
+      chosenCell +
+      '<td class="idx">' + (i + 1) + '</td>' +
+      '<td class="txt strat-cell"><b>' + esc(r.title) + '</b><span class="cell-sub">' + esc(r.id.toUpperCase()) + '</span></td>' +
+      '<td class="txt"><span class="tf-badge">' + esc(r.tf) + '</span></td>' +
+      '<td class="txt">' + (r.isBase
+        ? '<span class="filter-pill base">Filtresiz</span>'
+        : '<span class="filter-pill">' + esc(r.filterLabel) + '</span>') + '</td>' +
+      '<td class="num">' + nf(r.n) + '</td>' +
+      tblAvgCell(r.avgAll) +
+      tblAvgCell(r.avg26) +
+      durCell +
+      '<td class="num">' + nf(r.w) + ' / ' + nf(r.l) + ' - ' + ratioTxt + '</td>' +
+      '<td class="num"><span class="score-pill ' + tblScoreClass(r.score) + '" title="2. kategori: ' +
+        r.s2.toFixed(1) + ' · 4. kategori: ' + r.s4.toFixed(1) + ' · 5. kategori: ' + r.s5.toFixed(1) +
+        '">' + nf(r.score, 1) + '</span></td>' +
+      removeCell +
+      '</tr>';
+  }
+
   function renderTable() {
     if (!TABLE_ROWS) buildTableRows();
     var body = el('tblBody');
@@ -1469,33 +1541,13 @@
     }
 
     var html = rows.map(function (r, i) {
-      var durCell = (r.winDur == null)
-        ? '<td class="num">—</td>'
-        : '<td class="num">' + nf(r.winDur, 1) + ' sa' +
-          '<span class="cell-sub">' + (r.winDur / 24 >= 2 ? nf(r.winDur / 24, 1) + ' gün' : '') + '</span></td>';
-      var ratioTxt = isFinite(r.ratio) ? nf(r.ratio, 2) : '∞';
-      return '<tr>' +
-        '<td class="idx">' + (i + 1) + '</td>' +
-        '<td class="txt strat-cell"><b>' + esc(r.title) + '</b><span class="cell-sub">' + esc(r.id.toUpperCase()) + '</span></td>' +
-        '<td class="txt"><span class="tf-badge">' + esc(r.tf) + '</span></td>' +
-        '<td class="txt">' + (r.isBase
-          ? '<span class="filter-pill base">Filtresiz</span>'
-          : '<span class="filter-pill">' + esc(r.filterLabel) + '</span>') + '</td>' +
-        '<td class="num">' + nf(r.n) + '</td>' +
-        tblAvgCell(r.avgAll) +
-        tblAvgCell(r.avg26) +
-        durCell +
-        '<td class="num">' + nf(r.w) + ' / ' + nf(r.l) + ' - ' + ratioTxt + '</td>' +
-        '<td class="num"><span class="score-pill ' + tblScoreClass(r.score) + '" title="2. kategori: ' +
-          r.s2.toFixed(1) + ' · 4. kategori: ' + r.s4.toFixed(1) + ' · 5. kategori: ' + r.s5.toFixed(1) +
-          '">' + nf(r.score, 1) + '</span></td>' +
-        '</tr>';
+      return tblRowHtml(r, i, { chosen: true });
     }).join('');
 
-    body.innerHTML = html || '<tr><td colspan="10" style="text-align:center;padding:28px;color:var(--muted)">Bu filtrelerle satır bulunamadı.</td></tr>';
+    body.innerHTML = html || '<tr><td colspan="11" style="text-align:center;padding:28px;color:var(--muted)">Bu filtrelerle satır bulunamadı.</td></tr>';
 
     if (meta) {
-      var sortLbl = { score: 'Puan', n: 'İşlem', avgAll: 'Tüm Yıllar Net/İşlem', avg26: '2026 Net/İşlem', winDur: 'Kârlı Süre', ratio: 'Kârlı/Zararlı', title: 'Strateji', tf: 'TF', filter: 'Filtre' }[TS.sortKey] || TS.sortKey;
+      var sortLbl = { chosen: 'Seçim', score: 'Puan', n: 'İşlem', avgAll: 'Tüm Yıllar Net/İşlem', avg26: '2026 Net/İşlem', winDur: 'Kârlı Süre', ratio: 'Kârlı/Zararlı', title: 'Strateji', tf: 'TF', filter: 'Filtre' }[TS.sortKey] || TS.sortKey;
       meta.innerHTML = '<span><b>' + nf(rows.length) + ' / ' + nf(TABLE_ROWS.length) + '</b> satır</span>' +
         '<span>Sıralama: <b>' + esc(sortLbl) + ' ' + (TS.sortDir > 0 ? '↑' : '↓') + '</b></span>' +
         '<span>Min–max ölçeği ' + nf(TABLE_ROWS.length) + ' satırın tamamından hesaplandı</span>';
@@ -1506,6 +1558,17 @@
     if (!TABLE_ROWS) buildTableRows();
     var rows = TABLE_ROWS.filter(tblMatches);
     rows.sort(tblCmp);
+    csvWrite(rows, 'pro_strateji_filtre_tf.csv');
+  }
+
+  function chosenRows() {
+    if (!TABLE_ROWS) buildTableRows();
+    var rows = TABLE_ROWS.filter(function (r) { return TS.chosen.has(r.key); });
+    rows.sort(function (a, b) { return b.score - a.score; });
+    return rows;
+  }
+
+  function csvWrite(rows, filename) {
     var head = ['Strateji', 'ID', 'TF', 'Filtre', 'Islem', 'Net/Islem Tum Yillar (%)', 'Net/Islem 2026 (%)', 'Karli Ort Sure (saat)', 'Karli', 'Zararli', 'Karli/Zararli', 'Puan'];
     function cs(v, d) { return Number(v).toFixed(d == null ? 2 : d).replace('.', ','); }
     var lines = [head.join(';')];
@@ -1528,11 +1591,87 @@
     var blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'pro_strateji_filtre_tf.csv';
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(a.href);
+  }
+
+  function renderChosen() {
+    var body = el('chosenBody');
+    var meta = el('chosenMeta');
+    if (!body) return;
+
+    var rows = chosenRows();
+    var html = rows.map(function (r, i) {
+      return tblRowHtml(r, i, { remove: true });
+    }).join('');
+
+    body.innerHTML = html || '<tr><td colspan="11" style="text-align:center;padding:34px;color:var(--muted)">Henüz seçim yok. “Strateji × Filtre × TF Tablosu” sekmesinde <b>Chosen</b> kutusunu işaretlediğin satırlar burada listelenir.</td></tr>';
+
+    if (meta) {
+      if (!rows.length) {
+        meta.innerHTML = '<span><b>0</b> seçili satır</span><span>Seçimler tarayıcında saklanır (localStorage)</span>';
+      } else {
+        var sum = 0, best = rows[0];
+        rows.forEach(function (r) { sum += r.score; });
+        meta.innerHTML = '<span><b>' + nf(rows.length) + '</b> seçili satır</span>' +
+          '<span>Ortalama puan: <b>' + nf(sum / rows.length, 1) + '</b></span>' +
+          '<span>En yüksek: <b>' + nf(best.score, 1) + '</b> · ' + esc(best.title) + ' · ' + esc(best.tf) + '</span>' +
+          '<span>Puan sırasına göre (büyükten küçüğe) listelenir</span>';
+      }
+    }
+    updateChosenBadge();
+  }
+
+  function initChosen() {
+    var tb = el('tblBody');
+    if (tb) {
+      tb.addEventListener('change', function (e) {
+        var t = e.target;
+        if (!t || !t.classList || !t.classList.contains('chk-chosen')) return;
+        var key = t.getAttribute('data-key');
+        if (!key) return;
+        if (t.checked) TS.chosen.add(key);
+        else TS.chosen.delete(key);
+        chosenSave();
+        updateChosenBadge();
+        var tr = t.closest ? t.closest('tr') : null;
+        if (tr) tr.classList.toggle('picked', t.checked);
+        renderChosen();
+      });
+    }
+
+    var cb = el('chosenBody');
+    if (cb) {
+      cb.addEventListener('click', function (e) {
+        var b = e.target && e.target.closest ? e.target.closest('.chk-remove') : null;
+        if (!b) return;
+        TS.chosen.delete(b.getAttribute('data-key'));
+        chosenSave();
+        updateChosenBadge();
+        renderTable();
+        renderChosen();
+      });
+    }
+
+    var clear = el('chosenClear');
+    if (clear) clear.addEventListener('click', function () {
+      if (!TS.chosen.size) return;
+      TS.chosen.clear();
+      chosenSave();
+      updateChosenBadge();
+      renderTable();
+      renderChosen();
+    });
+
+    var csv = el('chosenCsv');
+    if (csv) csv.addEventListener('click', function () {
+      var rows = chosenRows();
+      if (!rows.length) return;
+      csvWrite(rows, 'pro_chosen_ones.csv');
+    });
   }
 
   function initTabs() {
@@ -1545,12 +1684,15 @@
           b.classList.toggle('on', on);
           b.setAttribute('aria-selected', on ? 'true' : 'false');
         });
-        var pa = el('panelAnalyze'), pt = el('panelTable');
+        var pa = el('panelAnalyze'), pt = el('panelTable'), pc = el('panelChosen');
         if (pa) pa.hidden = tab !== 'analyze';
         if (pt) pt.hidden = tab !== 'table';
+        if (pc) pc.hidden = tab !== 'chosen';
         if (tab === 'table') {
           renderTable();
           layoutTableHeader();
+        } else if (tab === 'chosen') {
+          renderChosen();
         } else {
           requestAnimationFrame(function () {
             window.dispatchEvent(new Event('resize'));
@@ -1566,9 +1708,13 @@
   function initTable() {
     if (!el('tblHead')) return;
     buildTableRows();
+    chosenLoad();
     initTableHeader();
     initTableControls();
+    initChosen();
+    updateChosenBadge();
     renderTable();
+    renderChosen();
     initTabs();
   }
 

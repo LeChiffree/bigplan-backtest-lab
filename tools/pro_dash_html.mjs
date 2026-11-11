@@ -133,6 +133,7 @@ ${css}
     <div class="tabs" role="tablist">
       <button class="tab-btn on" data-tab="analyze" role="tab" aria-selected="true">Analiz Paneli</button>
       <button class="tab-btn" data-tab="table" role="tab" aria-selected="false">Strateji × Filtre × TF Tablosu <span class="tab-count">563</span></button>
+      <button class="tab-btn" data-tab="chosen" role="tab" aria-selected="false">Chosen Ones <span class="tab-count" id="chosenTabCount">0</span></button>
     </div>
 
     <div id="panelAnalyze" class="tab-panel">
@@ -412,6 +413,47 @@ ${css}
       <div class="table-legend">
         <b>Puan (0–99,9):</b> (2) tüm yıllar işlem başı net getiri min–max ölçeğinde 0–33,3 · (4) kârlı işlemlerin ortalama kalış süresi ters min–max ölçeğinde 0–33,3 · (5) kârlı/zararlı işlem oranı min–max ölçeğinde 0–33,3. Üç kategori toplanır.
         <br>Net/İşlem değerleri 1× kaldıraçsız oransal getiridir; altındaki küçük değer $10 sabit işlem karşılığıdır. Süreler saat cinsindendir. Bu tablo eğitim/araştırma amaçlıdır, yatırım tavsiyesi değildir.
+      </div>
+    </div>
+
+    <!-- ===================== CHOSEN ONES SEKMESİ ===================== -->
+    <div id="panelChosen" class="tab-panel" hidden>
+      <div class="table-toolbar">
+        <div>
+          <h2>Chosen Ones</h2>
+          <p class="note">Strateji tablosunda <b>Chosen</b> kutusunu işaretlediğin her strateji + filtre + timeframe satırı burada toplanır. Seçimler tarayıcıda saklanır.</p>
+        </div>
+        <div class="table-actions">
+          <button class="btn-step" id="chosenCsv">CSV indir</button>
+          <button class="btn-step" id="chosenClear">Tümünü temizle</button>
+        </div>
+      </div>
+
+      <div class="table-meta" id="chosenMeta"></div>
+
+      <div class="table-scroll">
+        <table class="data-table" id="chosenTbl">
+          <thead>
+            <tr>
+              <th class="idx">#</th>
+              <th class="txt">Strateji</th>
+              <th class="txt">TF</th>
+              <th class="txt">Filtre</th>
+              <th>İşlem</th>
+              <th>Net / İşlem<br>Tüm Yıllar</th>
+              <th>Net / İşlem<br>2026</th>
+              <th>Kârlı İşlem<br>Ort. Süre (saat)</th>
+              <th>Kârlı / Zararlı</th>
+              <th>Puan<br>(0–99,9)</th>
+              <th>Kaldır</th>
+            </tr>
+          </thead>
+          <tbody id="chosenBody"></tbody>
+        </table>
+      </div>
+
+      <div class="table-legend">
+        <b>Chosen Ones:</b> Bu sekme yatırım tavsiyesi değildir; seçtiğin kombinasyonları tek listede karşılaştırman için hazırlanmıştır. İşaretlemeyi kaldırmak için satır sonundaki <b>Kaldır</b> düğmesini veya strateji tablosundaki kutuyu kullanabilirsin.
       </div>
     </div>
 
