@@ -1366,6 +1366,7 @@ footer b {
       <button class="tab-btn on" data-tab="analyze" role="tab" aria-selected="true">Analiz Paneli</button>
       <button class="tab-btn" data-tab="table" role="tab" aria-selected="false">Strateji × Filtre × TF Tablosu <span class="tab-count">563</span></button>
       <button class="tab-btn" data-tab="chosen" role="tab" aria-selected="false">Chosen Ones <span class="tab-count" id="chosenTabCount">0</span></button>
+      <button class="tab-btn" data-tab="combine" role="tab" aria-selected="false">Kombine <span class="tab-count" id="combineTabCount">0</span></button>
     </div>
 
     <div id="panelAnalyze" class="tab-panel">
@@ -1881,6 +1882,171 @@ footer b {
       <div class="table-legend">
         <b>Puan (0–99,9):</b> (2) tüm yıllar işlem başı net getiri min–max ölçeğinde 0–33,3 · (4) kârlı işlemlerin ortalama kalış süresi ters min–max ölçeğinde 0–33,3 · (5) kârlı/zararlı işlem oranı min–max ölçeğinde 0–33,3. Üç kategori toplanır.
         <br>Net/İşlem değerleri 1× kaldıraçsız oransal getiridir; altındaki küçük değer $10 sabit işlem karşılığıdır. Süreler saat cinsindendir. Bu tablo eğitim/araştırma amaçlıdır, yatırım tavsiyesi değildir.
+      </div>
+    </div>
+
+    <!-- ===================== KOMBİNE SEKMESİ ===================== -->
+    <div id="panelCombine" class="tab-panel" hidden>
+      <div class="table-toolbar">
+        <div>
+          <h2>Kombine — Chosen Ones Portföyü</h2>
+          <p class="note" id="combineSummary">Chosen Ones sekmesinde işaretlenen stratejilerin günlük/saftalık/aylık kovalarının toplamına dayanır. Gerçek birleşik işlem defteri değildir — her stratejinin bağımsız günlük sonuçlarının eleman bazında toplamıdır; bu veri modelinde ulaşılabilen en iyi yaklaşımdır (kur/hacim filtresi ve coin kırılımı kombine görünümde uygulanmaz).</p>
+        </div>
+        <div class="table-actions">
+          <button class="btn-step" id="combineRefresh">Yenile</button>
+        </div>
+      </div>
+
+      <div id="combineEmpty" class="table-meta" hidden>Henüz hiç strateji "Chosen Ones" listesine eklenmemiş. Önce tablo sekmesinden birkaç satır işaretleyin.</div>
+
+      <div id="combineBody" hidden>
+        <div class="split-row">
+          <div class="kpi-grid-8" id="km_kpisAll"></div>
+          <div class="kpi-grid-8" id="km_kpis2026"></div>
+        </div>
+
+        <div class="split-row">
+          <div class="chart-card left-card">
+            <div class="chart-head"><div><h3>Kümülatif Net Özsermaye Eğrisi (Tüm Yıllar)</h3></div><span class="tag-side all">TÜM YILLAR (22–26)</span></div>
+            <div id="cEq_all_km" class="plot-box "></div>
+          </div>
+          <div class="chart-card right-card">
+            <div class="chart-head"><div><h3>Kümülatif Net Özsermaye Eğrisi (2026)</h3></div><span class="tag-side y26">SADECE 2026</span></div>
+            <div id="cEq_26_km" class="plot-box "></div>
+          </div>
+        </div>
+
+        <div class="split-row">
+          <div class="chart-card left-card">
+            <div class="chart-head"><div><h3>Drawdown Eğrisi (Tüm Yıllar)</h3></div><span class="tag-side all">TÜM YILLAR (22–26)</span></div>
+            <div id="cDd_all_km" class="plot-box "></div>
+          </div>
+          <div class="chart-card right-card">
+            <div class="chart-head"><div><h3>Drawdown Eğrisi (2026)</h3></div><span class="tag-side y26">SADECE 2026</span></div>
+            <div id="cDd_26_km" class="plot-box "></div>
+          </div>
+        </div>
+
+        <div class="split-row">
+          <div class="chart-card left-card">
+            <div class="chart-head"><div><h3>Günlük Kâr-Zarar (Tüm Yıllar)</h3></div><span class="tag-side all">TÜM YILLAR (22–26)</span></div>
+            <div id="cDay_all_km" class="plot-box "></div>
+          </div>
+          <div class="chart-card right-card">
+            <div class="chart-head"><div><h3>Günlük Kâr-Zarar (2026)</h3></div><span class="tag-side y26">SADECE 2026</span></div>
+            <div id="cDay_26_km" class="plot-box "></div>
+          </div>
+        </div>
+
+        <div class="split-row">
+          <div class="chart-card left-card">
+            <div class="chart-head"><div><h3>Haftalık Kâr-Zarar (Tüm Yıllar)</h3></div><span class="tag-side all">TÜM YILLAR (22–26)</span></div>
+            <div id="cWeek_all_km" class="plot-box "></div>
+          </div>
+          <div class="chart-card right-card">
+            <div class="chart-head"><div><h3>Haftalık Kâr-Zarar (2026)</h3></div><span class="tag-side y26">SADECE 2026</span></div>
+            <div id="cWeek_26_km" class="plot-box "></div>
+          </div>
+        </div>
+
+        <div class="split-row">
+          <div class="chart-card left-card">
+            <div class="chart-head"><div><h3>Aylık Kâr-Zarar (Tüm Yıllar)</h3></div><span class="tag-side all">TÜM YILLAR (22–26)</span></div>
+            <div id="cMonth_all_km" class="plot-box "></div>
+          </div>
+          <div class="chart-card right-card">
+            <div class="chart-head"><div><h3>2026 Aylık Kâr-Zarar</h3></div><span class="tag-side y26">SADECE 2026</span></div>
+            <div id="cMonth_26_km" class="plot-box "></div>
+          </div>
+        </div>
+
+        <div class="split-row">
+          <div class="chart-card left-card">
+            <div class="chart-head"><div><h3>Mevsimlik Kâr-Zarar (Tüm Yıllar)</h3></div><span class="tag-side all">TÜM YILLAR (22–26)</span></div>
+            <div id="cSeason_all_km" class="plot-box "></div>
+          </div>
+          <div class="chart-card right-card">
+            <div class="chart-head"><div><h3>Mevsimlik Kâr-Zarar (2026)</h3></div><span class="tag-side y26">SADECE 2026</span></div>
+            <div id="cSeason_26_km" class="plot-box "></div>
+          </div>
+        </div>
+
+        <div class="split-row">
+          <div class="chart-card left-card">
+            <div class="chart-head"><div><h3>Haftanın Gününe Göre Net Performans (Tüm Yıllar)</h3></div><span class="tag-side all">TÜM YILLAR (22–26)</span></div>
+            <div id="cDow_all_km" class="plot-box "></div>
+          </div>
+          <div class="chart-card right-card">
+            <div class="chart-head"><div><h3>Haftanın Gününe Göre Net Performans (2026)</h3></div><span class="tag-side y26">SADECE 2026</span></div>
+            <div id="cDow_26_km" class="plot-box "></div>
+          </div>
+        </div>
+
+        <div class="split-row">
+          <div class="chart-card left-card">
+            <div class="chart-head"><div><h3>Ay × Yıl Net Getiri Heatmap'i (Tüm Yıllar)</h3></div><span class="tag-side all">TÜM YILLAR (22–26)</span></div>
+            <div id="cCal_all_km" class="plot-box "></div>
+          </div>
+          <div class="chart-card right-card">
+            <div class="chart-head"><div><h3>2026 Aylık Kâr/Zarar/Net Heatmap'i</h3></div><span class="tag-side y26">SADECE 2026</span></div>
+            <div id="cCal_26_km" class="plot-box "></div>
+          </div>
+        </div>
+
+        <div class="split-row">
+          <div class="chart-card left-card">
+            <div class="chart-head"><div><h3>İşlem Süresi Histogramı (Tüm Yıllar)</h3></div><span class="tag-side all">TÜM YILLAR (22–26)</span></div>
+            <div id="cDurCnt_all_km" class="plot-box "></div>
+          </div>
+          <div class="chart-card right-card">
+            <div class="chart-head"><div><h3>İşlem Süresi Histogramı (2026)</h3></div><span class="tag-side y26">SADECE 2026</span></div>
+            <div id="cDurCnt_26_km" class="plot-box "></div>
+          </div>
+        </div>
+
+        <div class="split-row">
+          <div class="chart-card left-card">
+            <div class="chart-head"><div><h3>İşlem Süresine Göre Kâr-Zarar (Tüm Yıllar)</h3></div><span class="tag-side all">TÜM YILLAR (22–26)</span></div>
+            <div id="cDurPnl_all_km" class="plot-box "></div>
+          </div>
+          <div class="chart-card right-card">
+            <div class="chart-head"><div><h3>İşlem Süresine Göre Kâr-Zarar (2026)</h3></div><span class="tag-side y26">SADECE 2026</span></div>
+            <div id="cDurPnl_26_km" class="plot-box "></div>
+          </div>
+        </div>
+
+        <div class="split-row">
+          <div class="chart-card left-card">
+            <div class="chart-head"><div><h3>Long–Short Net Performans (Tüm Yıllar)</h3></div><span class="tag-side all">TÜM YILLAR (22–26)</span></div>
+            <div id="cLs_all_km" class="plot-box "></div>
+          </div>
+          <div class="chart-card right-card">
+            <div class="chart-head"><div><h3>Long–Short Net Performans (2026)</h3></div><span class="tag-side y26">SADECE 2026</span></div>
+            <div id="cLs_26_km" class="plot-box "></div>
+          </div>
+        </div>
+
+        <div class="split-row">
+          <div class="chart-card left-card">
+            <div class="chart-head"><div><h3>Çıkış Nedeni Dağılımı — İşlem Sayısı (Tüm Yıllar)</h3></div><span class="tag-side all">TÜM YILLAR (22–26)</span></div>
+            <div id="cExitCnt_all_km" class="plot-box "></div>
+          </div>
+          <div class="chart-card right-card">
+            <div class="chart-head"><div><h3>Çıkış Nedeni Dağılımı — İşlem Sayısı (2026)</h3></div><span class="tag-side y26">SADECE 2026</span></div>
+            <div id="cExitCnt_26_km" class="plot-box "></div>
+          </div>
+        </div>
+
+        <div class="split-row">
+          <div class="chart-card left-card">
+            <div class="chart-head"><div><h3>Çıkış Nedenine Göre Net Kâr ve Zarar (Tüm Yıllar)</h3></div><span class="tag-side all">TÜM YILLAR (22–26)</span></div>
+            <div id="cExitPnl_all_km" class="plot-box "></div>
+          </div>
+          <div class="chart-card right-card">
+            <div class="chart-head"><div><h3>Çıkış Nedenine Göre Net Kâr ve Zarar (2026)</h3></div><span class="tag-side y26">SADECE 2026</span></div>
+            <div id="cExitPnl_26_km" class="plot-box "></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -2746,7 +2912,8 @@ footer b {
   }
 
   // Satır 5 & 6: (13) Günlük Kâr-Zarar ve (14) Haftalık Kâr-Zarar Grafikleri
-  function drawDailyAndWeeklyRows(sd) {
+  function drawDailyAndWeeklyRows(sd, suf) {
+    suf = suf || '';
     var m = unitMult();
     var uLbl = unitSuffix();
 
@@ -2767,8 +2934,8 @@ footer b {
       }), PLOT_CFG);
     }
 
-    plotDaily('cDay_all', sd.all, 0);
-    plotDaily('cDay_26', sd.y26, 0.08);
+    plotDaily('cDay_all' + suf, sd.all, 0);
+    plotDaily('cDay_26' + suf, sd.y26, 0.08);
 
     function plotWeekly(domId, sideObj) {
       var wMap = new Map();
@@ -2794,28 +2961,29 @@ footer b {
       }), PLOT_CFG);
     }
 
-    plotWeekly('cWeek_all', sd.all);
-    plotWeekly('cWeek_26', sd.y26);
+    plotWeekly('cWeek_all' + suf, sd.all);
+    plotWeekly('cWeek_26' + suf, sd.y26);
   }
 
   // Satır 7, 8, 9, 10: (15) Aylık, (16) Mevsimlik, Haftanın Günü ve Ay×Yıl Heatmap
-  function drawCalendarRows(sd) {
+  function drawCalendarRows(sd, suf) {
+    suf = suf || '';
     // 15. Aylık Kâr-Zarar
     var mLabsAll = sd.timelineMonthsAll.map(function (x) { return x.label; });
-    plotDivergingBars('cMonth_all', mLabsAll, sd.timelineMonthsAll, 'Aylık Kâr / Zarar');
+    plotDivergingBars('cMonth_all' + suf, mLabsAll, sd.timelineMonthsAll, 'Aylık Kâr / Zarar');
 
     var mLabs26 = sd.timelineMonths26.map(function (x) { return x.label; });
-    plotDivergingBars('cMonth_26', mLabs26, sd.timelineMonths26, '2026 Aylık Kâr / Zarar');
+    plotDivergingBars('cMonth_26' + suf, mLabs26, sd.timelineMonths26, '2026 Aylık Kâr / Zarar');
 
     // 16. Mevsimlik Kâr-Zarar
-    plotDivergingBars('cSeason_all', SEASON_LABELS, sd.all.season, 'Mevsimlik Kâr / Zarar');
-    plotDivergingBars('cSeason_26', SEASON_LABELS, sd.y26.season, '2026 Mevsimlik Kâr / Zarar');
+    plotDivergingBars('cSeason_all' + suf, SEASON_LABELS, sd.all.season, 'Mevsimlik Kâr / Zarar');
+    plotDivergingBars('cSeason_26' + suf, SEASON_LABELS, sd.y26.season, '2026 Mevsimlik Kâr / Zarar');
 
     // Haftanın Gününe Göre Net Performans (Pzt..Paz)
     var dowAll = [1, 2, 3, 4, 5, 6, 0].map(function (idx) { return sd.all.dow[idx]; });
     var dow26 = [1, 2, 3, 4, 5, 6, 0].map(function (idx) { return sd.y26.dow[idx]; });
-    plotDivergingBars('cDow_all', DOW_LABELS, dowAll, 'Haftanın Günü Kâr/Zarar');
-    plotDivergingBars('cDow_26', DOW_LABELS, dow26, '2026 Haftanın Günü Kâr/Zarar');
+    plotDivergingBars('cDow_all' + suf, DOW_LABELS, dowAll, 'Haftanın Günü Kâr/Zarar');
+    plotDivergingBars('cDow_26' + suf, DOW_LABELS, dow26, '2026 Haftanın Günü Kâr/Zarar');
 
     // Ay × Yıl Net Getiri Heatmap'i (Sol: 2022–2026 | Sağ: 2026 Aylık Detay Heatmap)
     var m = unitMult();
@@ -2844,7 +3012,7 @@ footer b {
       [1, '#46d49a'],
     ];
 
-    Plotly.react('cCal_all', [{
+    Plotly.react('cCal_all' + suf, [{
       x: MONTH_LABELS,
       y: yYears,
       z: zAll,
@@ -2871,7 +3039,7 @@ footer b {
       return row.map(function (v) { return (v >= 0 ? '+' : '') + nf(v, 0); });
     });
 
-    Plotly.react('cCal_26', [{
+    Plotly.react('cCal_26' + suf, [{
       x: m26Names,
       y: ['2026 Brüt Kâr', '2026 Brüt Zarar', '2026 Net Sonuç'],
       z: z26,
@@ -2889,7 +3057,8 @@ footer b {
   }
 
   // Satır 11 & 12: (17) İşlem Süresi Histogramı ve (18) İşlem Süresine Göre Kâr-Zarar
-  function drawDurationRows(sd) {
+  function drawDurationRows(sd, suf) {
+    suf = suf || '';
     function plotDurCount(domId, durRows) {
       var counts = durRows.map(function (r) { return r.n; });
       var wrs = durRows.map(function (r) { return r.n ? Math.round((r.w / r.n) * 1000) / 10 : 0; });
@@ -2928,17 +3097,18 @@ footer b {
       }), PLOT_CFG);
     }
 
-    plotDurCount('cDurCnt_all', sd.all.dur);
-    plotDurCount('cDurCnt_26', sd.y26.dur);
+    plotDurCount('cDurCnt_all' + suf, sd.all.dur);
+    plotDurCount('cDurCnt_26' + suf, sd.y26.dur);
 
-    plotDivergingBars('cDurPnl_all', DUR_LABELS, sd.all.dur, 'Süreye Göre Kâr / Zarar');
-    plotDivergingBars('cDurPnl_26', DUR_LABELS, sd.y26.dur, '2026 Süreye Göre Kâr / Zarar');
+    plotDivergingBars('cDurPnl_all' + suf, DUR_LABELS, sd.all.dur, 'Süreye Göre Kâr / Zarar');
+    plotDivergingBars('cDurPnl_26' + suf, DUR_LABELS, sd.y26.dur, '2026 Süreye Göre Kâr / Zarar');
   }
 
   // Satır 13, 14, 15: Long–Short Karşılaştırması ve Çıkış Nedenleri (SL / TP / Flip / MaxBars)
-  function drawLsAndExitRows(sd) {
-    plotDivergingBars('cLs_all', ['Long İşlemler', 'Short İşlemler'], sd.all.ls, 'Long vs Short Kâr / Zarar');
-    plotDivergingBars('cLs_26', ['Long İşlemler', 'Short İşlemler'], sd.y26.ls, '2026 Long vs Short Kâr / Zarar');
+  function drawLsAndExitRows(sd, suf) {
+    suf = suf || '';
+    plotDivergingBars('cLs_all' + suf, ['Long İşlemler', 'Short İşlemler'], sd.all.ls, 'Long vs Short Kâr / Zarar');
+    plotDivergingBars('cLs_26' + suf, ['Long İşlemler', 'Short İşlemler'], sd.y26.ls, '2026 Long vs Short Kâr / Zarar');
 
     function plotExitCounts(domId, exitRows) {
       var counts = exitRows.map(function (r) { return r.n; });
@@ -2960,11 +3130,11 @@ footer b {
       }), PLOT_CFG);
     }
 
-    plotExitCounts('cExitCnt_all', sd.all.exit);
-    plotExitCounts('cExitCnt_26', sd.y26.exit);
+    plotExitCounts('cExitCnt_all' + suf, sd.all.exit);
+    plotExitCounts('cExitCnt_26' + suf, sd.y26.exit);
 
-    plotDivergingBars('cExitPnl_all', EXIT_LABELS, sd.all.exit, 'Çıkış Nedenine Göre Kâr/Zarar');
-    plotDivergingBars('cExitPnl_26', EXIT_LABELS, sd.y26.exit, '2026 Çıkış Nedenine Göre Kâr/Zarar');
+    plotDivergingBars('cExitPnl_all' + suf, EXIT_LABELS, sd.all.exit, 'Çıkış Nedenine Göre Kâr/Zarar');
+    plotDivergingBars('cExitPnl_26' + suf, EXIT_LABELS, sd.y26.exit, '2026 Çıkış Nedenine Göre Kâr/Zarar');
   }
 
   // Satır 16: (19) Coin Bazında Kâr-Zarar Grafiği (Seçilen Metotta En Aktif 40 Coin)
@@ -3155,6 +3325,100 @@ footer b {
   function updateChosenBadge() {
     var b = el('chosenTabCount');
     if (b) b.textContent = TS.chosen.size;
+    var cb = el('combineTabCount');
+    if (cb) cb.textContent = TS.chosen.size;
+  }
+
+  /* ==================== KOMBİNE (CHOSEN ONES PORTFÖYÜ) ==================== */
+  function emptyYearAgg() {
+    return {
+      n: 0, w: 0, sumPos: 0, sumNeg: 0, durSum: 0,
+      dur: new Array(40).fill(0), season: new Array(16).fill(0), dow: new Array(28).fill(0),
+      ls: new Array(8).fill(0), exit: new Array(16).fill(0), month: new Array(48).fill(0),
+    };
+  }
+
+  function addArrInto(dst, src) {
+    if (!src) return;
+    for (var i = 0; i < dst.length; i++) dst[i] += src[i] || 0;
+  }
+
+  function buildCombinedAgg() {
+    var keys = Array.from(TS.chosen);
+    var dayPosC = new Array(GRID.len).fill(0);
+    var dayNegC = new Array(GRID.len).fill(0);
+    var years = [emptyYearAgg(), emptyYearAgg(), emptyYearAgg(), emptyYearAgg(), emptyYearAgg()];
+    var tot = { n: 0, w: 0, sumPos: 0, sumNeg: 0, sumR: 0, durSum: 0 };
+    var used = 0;
+    keys.forEach(function (k) {
+      var st = byKey.get(k);
+      if (!st || !st.agg) return;
+      used++;
+      var a = st.agg;
+      tot.n += a.n || 0; tot.w += a.w || 0;
+      tot.sumPos += a.sumPos || 0; tot.sumNeg += a.sumNeg || 0;
+      tot.sumR += a.sumR || 0; tot.durSum += a.durSum || 0;
+      addArrInto(dayPosC, a.dayPosC);
+      addArrInto(dayNegC, a.dayNegC);
+      for (var y = 0; y < 5; y++) {
+        var Y = (a.years && a.years[y]) || null;
+        if (!Y) continue;
+        years[y].n += Y.n || 0; years[y].w += Y.w || 0;
+        years[y].sumPos += Y.sumPos || 0; years[y].sumNeg += Y.sumNeg || 0;
+        years[y].durSum += Y.durSum || 0;
+        addArrInto(years[y].dur, Y.dur);
+        addArrInto(years[y].season, Y.season);
+        addArrInto(years[y].dow, Y.dow);
+        addArrInto(years[y].ls, Y.ls);
+        addArrInto(years[y].exit, Y.exit);
+        addArrInto(years[y].month, Y.month);
+      }
+    });
+    return {
+      used: used,
+      st: {
+        agg: {
+          n: tot.n, w: tot.w, sumPos: tot.sumPos, sumNeg: tot.sumNeg, sumR: tot.sumR, durSum: tot.durSum,
+          dayPosC: dayPosC, dayNegC: dayNegC, years: years, coins: [], coins26: [],
+        },
+      },
+    };
+  }
+
+  function renderCombine() {
+    var combined = buildCombinedAgg();
+    var empty = el('combineEmpty'), body = el('combineBody');
+    if (!combined.used) {
+      if (empty) empty.hidden = false;
+      if (body) body.hidden = true;
+      return;
+    }
+    if (empty) empty.hidden = true;
+    if (body) body.hidden = false;
+
+    var summ = el('combineSummary');
+    if (summ) {
+      summ.textContent = combined.used + ' seçili strateji birleştirildi (' + TS.chosen.size + ' işaretliden ' + combined.used + ' tanesi veride bulundu). ' +
+        'Gerçek birleşik işlem defteri değildir — her stratejinin bağımsız günlük sonuçlarının eleman bazında toplamıdır; bu veri modelinde ulaşılabilen en iyi yaklaşımdır (hacim filtresi ve coin kırılımı kombine görünümde uygulanmaz).';
+    }
+
+    var sd = getSplitData(combined.st);
+
+    el('km_kpisAll').innerHTML = build8KpisHtml(sd.all);
+    el('km_kpis2026').innerHTML = build8KpisHtml(sd.y26);
+
+    drawEquityAndDrawdownPair('cEq_all_km', 'cDd_all_km', sd.all, '#46d49a');
+    drawEquityAndDrawdownPair('cEq_26_km', 'cDd_26_km', sd.y26, '#f2c674');
+    drawDailyAndWeeklyRows(sd, '_km');
+    drawCalendarRows(sd, '_km');
+    drawDurationRows(sd, '_km');
+    drawLsAndExitRows(sd, '_km');
+
+    requestAnimationFrame(function () {
+      document.querySelectorAll('#panelCombine .plot-box').forEach(function (d) {
+        if (window.Plotly && d.data) Plotly.Plots.resize(d);
+      });
+    });
   }
 
   function buildTableRows() {
@@ -3604,6 +3868,9 @@ footer b {
       if (!rows.length) return;
       csvWrite(rows, 'pro_chosen_ones.csv');
     });
+
+    var combineRefresh = el('combineRefresh');
+    if (combineRefresh) combineRefresh.addEventListener('click', renderCombine);
   }
 
   function initTabs() {
@@ -3616,15 +3883,18 @@ footer b {
           b.classList.toggle('on', on);
           b.setAttribute('aria-selected', on ? 'true' : 'false');
         });
-        var pa = el('panelAnalyze'), pt = el('panelTable'), pc = el('panelChosen');
+        var pa = el('panelAnalyze'), pt = el('panelTable'), pc = el('panelChosen'), pk = el('panelCombine');
         if (pa) pa.hidden = tab !== 'analyze';
         if (pt) pt.hidden = tab !== 'table';
         if (pc) pc.hidden = tab !== 'chosen';
+        if (pk) pk.hidden = tab !== 'combine';
         if (tab === 'table') {
           renderTable();
           layoutTableHeader();
         } else if (tab === 'chosen') {
           renderChosen();
+        } else if (tab === 'combine') {
+          renderCombine();
         } else {
           requestAnimationFrame(function () {
             window.dispatchEvent(new Event('resize'));

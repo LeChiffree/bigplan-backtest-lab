@@ -2,18 +2,21 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { gzipSync } from 'node:zlib';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = 8123;
 const ROUTES = {
-  '/': { file: 'D:/BigPlan/BACKTEST93.html', mime: 'text/html; charset=utf-8' },
-  '/backtest93': { file: 'D:/BigPlan/BACKTEST93.html', mime: 'text/html; charset=utf-8' },
-  '/pro': { file: 'D:/BigPlan/BACKTEST93.html', mime: 'text/html; charset=utf-8' },
-  '/ultra': { file: 'D:/BigPlan/ULTRA.html', mime: 'text/html; charset=utf-8' },
-  '/homojenlik': { file: 'D:/BigPlan/HOMOJENLIK.html', mime: 'text/html; charset=utf-8' },
-  '/eski': { file: 'D:/BigPlan/DASHBOARD_ONLINE.html', mime: 'text/html; charset=utf-8' },
-  '/master': { file: 'D:/BigPlan/DASHBOARD_MASTER_LITE.html', mime: 'text/html; charset=utf-8' },
-  '/plotly.min.js': { file: 'D:/BigPlan/out/plotly.min.js', mime: 'application/javascript; charset=utf-8' },
-  '/pro_data.js': { file: 'D:/BigPlan/out/pro_data.js', mime: 'application/javascript; charset=utf-8' },
+  '/': { file: join(ROOT, 'BACKTEST93.html'), mime: 'text/html; charset=utf-8' },
+  '/backtest93': { file: join(ROOT, 'BACKTEST93.html'), mime: 'text/html; charset=utf-8' },
+  '/pro': { file: join(ROOT, 'BACKTEST93.html'), mime: 'text/html; charset=utf-8' },
+  '/ultra': { file: join(ROOT, 'ULTRA.html'), mime: 'text/html; charset=utf-8' },
+  '/homojenlik': { file: join(ROOT, 'HOMOJENLIK.html'), mime: 'text/html; charset=utf-8' },
+  '/eski': { file: join(ROOT, 'DASHBOARD_ONLINE.html'), mime: 'text/html; charset=utf-8' },
+  '/master': { file: join(ROOT, 'DASHBOARD_MASTER_LITE.html'), mime: 'text/html; charset=utf-8' },
+  '/plotly.min.js': { file: join(ROOT, 'out/plotly.min.js'), mime: 'application/javascript; charset=utf-8' },
+  '/pro_data.js': { file: join(ROOT, 'out/pro_data.js'), mime: 'application/javascript; charset=utf-8' },
 };
 
 const cache = new Map();
