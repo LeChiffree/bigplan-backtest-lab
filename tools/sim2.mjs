@@ -66,7 +66,7 @@ export function simulateMulti(spec, ctx, gateL, gateS, trackers) {
     const fc = fundingCost(ctx.fund, entryT[k], t1);
     r -= pos[k] === 1 ? fc : -fc;
     if (r < -0.999) r = -0.999;
-    if (trackers) trackers[k].onTrade(r, exitI - entryI[k], t1, pos[k], reason);
+    if (trackers) trackers[k].onTrade(r, exitI - entryI[k], t1, pos[k], reason, entryT[k]);
     pos[k] = 0; stopP[k] = NaN; barsHeld[k] = 0;
   };
 

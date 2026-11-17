@@ -22,6 +22,30 @@ Tarayıcıda açılan rotalar (`port 8123`):
 
 ---
 
+## Singular-Backtest (tek açık işlem)
+
+[`Singular-Backtest/`](./Singular-Backtest/README.md) aynı motoru ve 520 sembolü
+kullanarak "aynı coinde aynı anda en fazla bir açık işlem" kuralını uygular.
+Varsayılan kapsam **strateji + varyant (`id|kind`), tüm zaman dilimleri
+birlikte**; `--scope=id_tf|id|state` ile alternatifler koşulabilir.
+
+```powershell
+node Singular-Backtest/run_singular.mjs
+node Singular-Backtest/verify_singular.mjs
+node Singular-Backtest/summarize_singular.mjs
+```
+
+Sonuç: 39.986.220 işlemin **4.251.687'si (%10,63)** bloke edilir; işlem başına
+ortalama getiri %0,7330 → %0,6525, toplam kasa 2,93M $ → 2,33M $, maksimum
+düşüş −70.944 $ → −60.279 $. Motor durum içi üst üste binmeyi zaten
+engellediği için kural yalnızca TF'ler arası çakışmaları keser; bu veri setinde
+kârlılığı artırmaz. Ayrıntılı tablo ve doğrulama: [`Singular-Backtest/README.md`](./Singular-Backtest/README.md).
+
+> Not: `tools/sim2.mjs` içindeki `onTrade` geri çağrısına giriş zamanı
+> parametresi eklendi (geriye dönük uyumlu).
+
+---
+
 ## Lokal Mum Verisi Notu
 
 `1m / 5m / 15m / 1h / 4h / 1d` ham mum/kline serileri (`cache/` klasörü ve `D:\1mDataBinance`) boyut nedeniyle `.gitignore` ile hariç tutulmuştur; simülasyonları sıfırdan koşturmak istediğinizde lokal diskteki mum verileri kullanılır (`bkz. PROJECT_MEMORY.md`).

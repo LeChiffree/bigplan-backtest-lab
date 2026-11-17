@@ -18,6 +18,9 @@
     "homogen": "node tools/homogen.mjs",
     "homogen-html": "node tools/homogen_html.mjs",
     "baseline": "node tools/run2.mjs baseline",
-    "fetch-extra": "node tools/fetch_extra.mjs"
+    "fetch-extra": "node tools/fetch_extra.mjs",
+    "singular": "node Singular-Backtest/run_singular.mjs",
+    "singular-verify": "node Singular-Backtest/verify_singular.mjs",
+    "singular-summary": "node Singular-Backtest/summarize_singular.mjs"
   }
 }
