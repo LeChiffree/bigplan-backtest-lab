@@ -1,6 +1,6 @@
 {
   "repo": "bigplan-backtest-lab",
-  "generated_at": "2026-11-17T20:14:40Z",
+  "generated_at": "2026-11-18T18:17:24Z",
   "scope": "config",
   "scope_label": "Strateji + varyant (id+kind), tum zaman dilimleri birlikte",
   "source": "out/pro_bundle.json + lokal 1m/5m/15m/1h/4h/1d verisi (D:\\1mDataBinance)",
@@ -14,5 +14,5 @@
   "priority": "Ayni giris aninda kisa TF once: 15m > 1h > 4h > 1d > 1w, sonra long > short",
   "stake_usd": 10,
   "cash_model": "Islem basina sabit 10 USD; retAll = islem basina ortalama getiri (%)",
-  "elapsed_sec": 36
+  "elapsed_sec": 124
 }

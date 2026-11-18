@@ -48,6 +48,26 @@ const PRO_DATA = JSON.parse(await readFile(PRO, 'utf8'));
 const GRID = PRO_DATA.grid;
 const GD = GRID.len;
 
+// Gun indekslerini (GRID.start + d*GRID.step) Pazartesi baslangicli hafta ve
+// takvim ayi indekslerine cevir. Boyutlari bir kez hesapla.
+const WEEK_OF = new Int32Array(GD);
+const MONTH_OF = new Int32Array(GD);
+let NWEEKS = 0, NMONTHS = 0;
+{
+  const base = new Date(GRID.start);
+  const baseDay = Math.floor(GRID.start / 86400000);
+  const baseWeek = baseDay - ((base.getUTCDay() + 6) % 7);
+  const baseMonth = base.getUTCFullYear() * 12 + base.getUTCMonth();
+  for (let d = 0; d < GD; d++) {
+    const ms = GRID.start + d * GRID.step;
+    const dt = new Date(ms);
+    WEEK_OF[d] = Math.floor(ms / 86400000) - ((dt.getUTCDay() + 6) % 7) - baseWeek;
+    MONTH_OF[d] = dt.getUTCFullYear() * 12 + dt.getUTCMonth() - baseMonth;
+    if (WEEK_OF[d] > NWEEKS) NWEEKS = WEEK_OF[d];
+    if (MONTH_OF[d] > NMONTHS) NMONTHS = MONTH_OF[d];
+  }
+}
+
 const idList = [...new Set(PRO_DATA.states.map((s) => s.id))].sort();
 const idIdxOf = Object.fromEntries(idList.map((id, i) => [id, i]));
 const symbolsAll = PRO_DATA.symbols;
@@ -78,15 +98,26 @@ function metrics(A, ctx) {
   let kasa = 0, kasa2526 = 0, kasa2026 = 0;
   let peak = 0, maxDD = 0;
   let profitDays = 0, lossDays = 0;
+  const weekNet = new Float64Array(NWEEKS + 1);
+  const monthNet = new Float64Array(NMONTHS + 1);
   for (let d = 0; d < GD; d++) {
     const net = (A.dayPos[d] - A.dayNeg[d]) * 10;
     kasa += net;
     if (d >= ctx.idx2025) kasa2526 += net;
     if (d >= ctx.idx2026) kasa2026 += net;
     if (net > 0) profitDays++; else if (net < 0) lossDays++;
+    weekNet[WEEK_OF[d]] += net;
+    monthNet[MONTH_OF[d]] += net;
     peak = Math.max(peak, kasa);
     const dd = kasa - peak;
     if (dd < maxDD) maxDD = dd;
+  }
+  let profitWeeks = 0, lossWeeks = 0, profitMonths = 0, lossMonths = 0;
+  for (let w = 0; w <= NWEEKS; w++) {
+    if (weekNet[w] > 0) profitWeeks++; else if (weekNet[w] < 0) lossWeeks++;
+  }
+  for (let m = 0; m <= NMONTHS; m++) {
+    if (monthNet[m] > 0) profitMonths++; else if (monthNet[m] < 0) lossMonths++;
   }
   const avg = n ? sumR / n : 0;
   const avgPos = wins ? A.sumPos / wins : 0;
@@ -107,6 +138,10 @@ function metrics(A, ctx) {
     holdH: n ? A.durSum / n : 0,
     profitDays,
     lossDays,
+    profitWeeks,
+    lossWeeks,
+    profitMonths,
+    lossMonths,
     maxDD,
     sumR,
     kasaAll: kasa,
@@ -426,8 +461,10 @@ function toCsv(rows, cols) {
 const stateCols = ['key', 'id', 'tf', 'kind', 'isSingle', 'blocked', 'blocked_pct',
   'n_trades', 's_trades', 'n_winRate', 's_winRate', 'n_retAll', 's_retAll', 'delta_retAll',
   'n_ret2026', 's_ret2026', 'n_winRatio', 's_winRatio', 'n_winHoldH', 's_winHoldH',
-  'n_profitDays', 's_profitDays', 'n_lossDays', 's_lossDays', 'n_maxDD', 's_maxDD',
-  'n_kasaAll', 's_kasaAll'];
+  'n_profitDays', 's_profitDays', 'n_lossDays', 's_lossDays',
+  'n_profitWeeks', 's_profitWeeks', 'n_lossWeeks', 's_lossWeeks',
+  'n_profitMonths', 's_profitMonths', 'n_lossMonths', 's_lossMonths',
+  'n_maxDD', 's_maxDD', 'n_kasaAll', 's_kasaAll'];
 await writeFile(join(OUT, 'singular_states.csv'), toCsv(stateRows, stateCols), 'utf8');
 await writeFile(join(OUT, 'singular_configs.csv'), toCsv(configs, ['key', 'id', 'kind', 'states', ...stateCols.filter((c) => c !== 'key' && c !== 'id' && c !== 'tf' && c !== 'kind' && c !== 'isSingle')]), 'utf8');
 await writeFile(join(OUT, 'singular_cells.csv'), toCsv(cells, ['key', 'id', 'tf', 'states', ...stateCols.filter((c) => !['key', 'id', 'tf', 'kind', 'isSingle'].includes(c))]), 'utf8');
